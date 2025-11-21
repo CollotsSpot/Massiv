@@ -117,7 +117,7 @@ class MusicAssistantAPI {
         scheme: uri.scheme,
         host: uri.host,
         port: port,
-        path: uri.path,
+        path: '/ws',  // Always use /ws path for WebSocket endpoint
       );
 
       _logger.log('Connecting to: ${connectionUri.host}:${connectionUri.port}${connectionUri.path}');
