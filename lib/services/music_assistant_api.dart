@@ -77,20 +77,20 @@ class MusicAssistantAPI {
         // Use custom port from settings
         uri = uri.replace(port: _cachedCustomPort);
         _logger.log('Using custom WebSocket port from settings: $_cachedCustomPort');
-      } else if (!uri.hasPort) {
+      } else if (uri.hasPort) {
+        // Port is already specified in URL, keep it
+        _logger.log('Using port from URL: ${uri.port}');
+      } else {
         // No port specified
-        if (useSecure) {
-          // For WSS (secure WebSocket), use port 443 explicitly
-          // (Flutter WebSocket needs explicit port)
-          uri = uri.replace(port: 443);
-          _logger.log('Using explicit port 443 for secure connection');
-        } else {
+        if (!useSecure) {
           // For WS (unsecure WebSocket), add Music Assistant default port 8095
           uri = uri.replace(port: 8095);
           _logger.log('Using port 8095 for unsecure connection');
+        } else {
+          // For WSS (secure WebSocket), don't set port - let it use default
+          // This is required for Cloudflare and reverse proxies
+          _logger.log('Using default WSS port (implicit 443) for secure connection');
         }
-      } else {
-        _logger.log('Using port from URL: ${uri.port}');
       }
 
       // Add /ws path for WebSocket endpoint
