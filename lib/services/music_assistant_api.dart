@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:uuid/uuid.dart';
 import '../models/media_item.dart';
 import 'debug_logger.dart';
@@ -99,27 +101,20 @@ class MusicAssistantAPI {
       _logger.log('Attempting ${useSecure ? "secure (WSS)" : "unsecure (WS)"} connection');
       _logger.log('Final WebSocket URL: $wsUrl');
 
-      // Parse the URL and handle the WebSocket connection
-      final finalUri = Uri.parse(wsUrl);
+      // Use native dart:io WebSocket for better control
+      final uri = Uri.parse(wsUrl);
+      _logger.log('Connecting to: ${uri.host}:${uri.hasPort ? uri.port : (useSecure ? 443 : 80)}${uri.path}');
 
-      // For WSS without explicit port, we need to handle port 443 specially
-      // to avoid the library using port 0
-      Uri connectionUri;
-      if (finalUri.scheme == 'wss' && finalUri.port == 0) {
-        // Explicitly set port 443 for secure WebSocket to avoid port 0 issue
-        connectionUri = Uri(
-          scheme: finalUri.scheme,
-          host: finalUri.host,
-          port: 443,
-          path: finalUri.path,
-        );
-        _logger.log('Explicitly setting port 443 for WSS connection to avoid port 0');
-      } else {
-        connectionUri = finalUri;
-      }
+      // Connect using native WebSocket with custom headers
+      final webSocket = await WebSocket.connect(
+        wsUrl,
+        headers: {
+          'User-Agent': 'MusicAssistantMobile/1.0',
+        },
+      );
 
-      _logger.log('Connection URI: $connectionUri');
-      _channel = WebSocketChannel.connect(connectionUri);
+      _logger.log('WebSocket connected successfully');
+      _channel = IOWebSocketChannel(webSocket);
 
       // Wait for server info message before considering connected
       _connectionCompleter = Completer<void>();
