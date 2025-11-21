@@ -70,35 +70,41 @@ class MusicAssistantAPI {
         useSecure = wsUrl.startsWith('wss://');
       }
 
-      // Add port if not present
-      var uri = Uri.parse(wsUrl);
+      // Construct WebSocket URL with proper port handling
+      final uri = Uri.parse(wsUrl);
 
+      int? port;
       if (_cachedCustomPort != null) {
         // Use custom port from settings
-        uri = uri.replace(port: _cachedCustomPort);
+        port = _cachedCustomPort;
         _logger.log('Using custom WebSocket port from settings: $_cachedCustomPort');
       } else if (uri.hasPort) {
         // Port is already specified in URL, keep it
+        port = uri.port;
         _logger.log('Using port from URL: ${uri.port}');
       } else {
         // No port specified
         if (!useSecure) {
           // For WS (unsecure WebSocket), add Music Assistant default port 8095
-          uri = uri.replace(port: 8095);
+          port = 8095;
           _logger.log('Using port 8095 for unsecure connection');
         } else {
-          // For WSS (secure WebSocket), don't set port - let it use default
-          // This is required for Cloudflare and reverse proxies
-          _logger.log('Using default WSS port (implicit 443) for secure connection');
+          // For WSS (secure WebSocket), use port 443
+          // Required for proper WebSocket handshake
+          port = 443;
+          _logger.log('Using port 443 for secure connection');
         }
       }
 
-      // Add /ws path for WebSocket endpoint
-      if (!uri.path.endsWith('/ws')) {
-        uri = uri.replace(path: '/ws');
-      }
+      // Build final WebSocket URL
+      final finalUri = Uri(
+        scheme: uri.scheme,
+        host: uri.host,
+        port: port,
+        path: '/ws',
+      );
 
-      wsUrl = uri.toString();
+      wsUrl = finalUri.toString();
 
       _logger.log('Attempting ${useSecure ? "secure (WSS)" : "unsecure (WS)"} connection');
       _logger.log('Final WebSocket URL: $wsUrl');
