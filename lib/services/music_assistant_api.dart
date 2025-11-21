@@ -71,33 +71,34 @@ class MusicAssistantAPI {
       }
 
       // Add port if not present
-      final uri = Uri.parse(wsUrl);
+      var uri = Uri.parse(wsUrl);
 
       if (_cachedCustomPort != null) {
         // Use custom port from settings
-        wsUrl = '${uri.scheme}://${uri.host}:$_cachedCustomPort${uri.path}';
+        uri = uri.replace(port: _cachedCustomPort);
         _logger.log('Using custom WebSocket port from settings: $_cachedCustomPort');
-      } else if (uri.hasPort) {
-        // Port is already specified in URL, keep it
-        _logger.log('Using port from URL: ${uri.port}');
-      } else {
+      } else if (!uri.hasPort) {
         // No port specified
         if (useSecure) {
-          // For WSS (secure WebSocket), don't add port 443 (it's the default)
-          // This is important for Cloudflare and reverse proxies
-          wsUrl = '${uri.scheme}://${uri.host}${uri.path}';
-          _logger.log('Using default WSS port (443 implicit) for secure connection');
+          // For WSS (secure WebSocket), use port 443 explicitly
+          // (Flutter WebSocket needs explicit port)
+          uri = uri.replace(port: 443);
+          _logger.log('Using explicit port 443 for secure connection');
         } else {
           // For WS (unsecure WebSocket), add Music Assistant default port 8095
-          wsUrl = '${uri.scheme}://${uri.host}:8095${uri.path}';
-          _logger.log('No port specified, defaulting to 8095 for unsecure connection');
+          uri = uri.replace(port: 8095);
+          _logger.log('Using port 8095 for unsecure connection');
         }
+      } else {
+        _logger.log('Using port from URL: ${uri.port}');
       }
 
       // Add /ws path for WebSocket endpoint
-      if (!wsUrl.endsWith('/ws')) {
-        wsUrl = '$wsUrl/ws';
+      if (!uri.path.endsWith('/ws')) {
+        uri = uri.replace(path: '/ws');
       }
+
+      wsUrl = uri.toString();
 
       _logger.log('Attempting ${useSecure ? "secure (WSS)" : "unsecure (WS)"} connection');
       _logger.log('Final WebSocket URL: $wsUrl');
