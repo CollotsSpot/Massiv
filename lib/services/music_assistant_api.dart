@@ -4,7 +4,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:uuid/uuid.dart';
 import '../models/media_item.dart';
 
-enum ConnectionState {
+enum MAConnectionState {
   disconnected,
   connecting,
   connected,
@@ -16,11 +16,11 @@ class MusicAssistantAPI {
   WebSocketChannel? _channel;
   final _uuid = const Uuid();
 
-  final _connectionStateController = StreamController<ConnectionState>.broadcast();
-  Stream<ConnectionState> get connectionState => _connectionStateController.stream;
+  final _connectionStateController = StreamController<MAConnectionState>.broadcast();
+  Stream<MAConnectionState> get connectionState => _connectionStateController.stream;
 
-  ConnectionState _currentState = ConnectionState.disconnected;
-  ConnectionState get currentConnectionState => _currentState;
+  MAConnectionState _currentState = MAConnectionState.disconnected;
+  MAConnectionState get currentConnectionState => _currentState;
 
   final Map<String, Completer<Map<String, dynamic>>> _pendingRequests = {};
   final Map<String, StreamController<Map<String, dynamic>>> _eventStreams = {};
@@ -28,13 +28,13 @@ class MusicAssistantAPI {
   MusicAssistantAPI(this.serverUrl);
 
   Future<void> connect() async {
-    if (_currentState == ConnectionState.connected ||
-        _currentState == ConnectionState.connecting) {
+    if (_currentState == MAConnectionState.connected ||
+        _currentState == MAConnectionState.connecting) {
       return;
     }
 
     try {
-      _updateConnectionState(ConnectionState.connecting);
+      _updateConnectionState(MAConnectionState.connecting);
 
       // Parse server URL and construct WebSocket URL
       var wsUrl = serverUrl;
@@ -69,24 +69,24 @@ class MusicAssistantAPI {
         _handleMessage,
         onError: (error) {
           print('WebSocket error: $error');
-          _updateConnectionState(ConnectionState.error);
+          _updateConnectionState(MAConnectionState.error);
           _reconnect();
         },
         onDone: () {
           print('WebSocket connection closed');
-          _updateConnectionState(ConnectionState.disconnected);
+          _updateConnectionState(MAConnectionState.disconnected);
           _reconnect();
         },
       );
 
       // Wait a bit to see if connection succeeds
       await Future.delayed(const Duration(milliseconds: 500));
-      _updateConnectionState(ConnectionState.connected);
+      _updateConnectionState(MAConnectionState.connected);
 
       print('Connected to Music Assistant');
     } catch (e) {
       print('Connection error: $e');
-      _updateConnectionState(ConnectionState.error);
+      _updateConnectionState(MAConnectionState.error);
       rethrow;
     }
   }
@@ -124,7 +124,7 @@ class MusicAssistantAPI {
     String command, {
     Map<String, dynamic>? args,
   }) async {
-    if (_currentState != ConnectionState.connected) {
+    if (_currentState != MAConnectionState.connected) {
       throw Exception('Not connected to Music Assistant server');
     }
 
@@ -349,14 +349,14 @@ class MusicAssistantAPI {
     return '$baseUrl/api/image/$size/${Uri.encodeComponent(imageUrl)}';
   }
 
-  void _updateConnectionState(ConnectionState state) {
+  void _updateConnectionState(MAConnectionState state) {
     _currentState = state;
     _connectionStateController.add(state);
   }
 
   Future<void> _reconnect() async {
     await Future.delayed(const Duration(seconds: 3));
-    if (_currentState != ConnectionState.connected) {
+    if (_currentState != MAConnectionState.connected) {
       try {
         await connect();
       } catch (e) {
@@ -366,7 +366,7 @@ class MusicAssistantAPI {
   }
 
   Future<void> disconnect() async {
-    _updateConnectionState(ConnectionState.disconnected);
+    _updateConnectionState(MAConnectionState.disconnected);
     await _channel?.sink.close();
     _channel = null;
     _pendingRequests.clear();

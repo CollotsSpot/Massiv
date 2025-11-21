@@ -5,7 +5,7 @@ import '../services/settings_service.dart';
 
 class MusicAssistantProvider with ChangeNotifier {
   MusicAssistantAPI? _api;
-  ConnectionState _connectionState = ConnectionState.disconnected;
+  MAConnectionState _connectionState = MAConnectionState.disconnected;
   String? _serverUrl;
 
   List<Artist> _artists = [];
@@ -14,14 +14,14 @@ class MusicAssistantProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  ConnectionState get connectionState => _connectionState;
+  MAConnectionState get connectionState => _connectionState;
   String? get serverUrl => _serverUrl;
   List<Artist> get artists => _artists;
   List<Album> get albums => _albums;
   List<Track> get tracks => _tracks;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get isConnected => _connectionState == ConnectionState.connected;
+  bool get isConnected => _connectionState == MAConnectionState.connected;
 
   MusicAssistantProvider() {
     _initialize();
@@ -50,7 +50,7 @@ class MusicAssistantProvider with ChangeNotifier {
         _connectionState = state;
         notifyListeners();
 
-        if (state == ConnectionState.connected) {
+        if (state == MAConnectionState.connected) {
           // Auto-load library when connected
           loadLibrary();
         }
@@ -60,7 +60,7 @@ class MusicAssistantProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _error = 'Connection failed: $e';
-      _connectionState = ConnectionState.error;
+      _connectionState = MAConnectionState.error;
       notifyListeners();
       rethrow;
     }
@@ -68,7 +68,7 @@ class MusicAssistantProvider with ChangeNotifier {
 
   Future<void> disconnect() async {
     await _api?.disconnect();
-    _connectionState = ConnectionState.disconnected;
+    _connectionState = MAConnectionState.disconnected;
     _artists = [];
     _albums = [];
     _tracks = [];

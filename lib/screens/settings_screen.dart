@@ -305,41 +305,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  IconData _getStatusIcon(ConnectionState state) {
+  IconData _getStatusIcon(MAConnectionState state) {
     switch (state) {
-      case ConnectionState.connected:
+      case MAConnectionState.connected:
         return Icons.check_circle_rounded;
-      case ConnectionState.connecting:
+      case MAConnectionState.connecting:
         return Icons.sync_rounded;
-      case ConnectionState.error:
+      case MAConnectionState.error:
         return Icons.error_rounded;
-      case ConnectionState.disconnected:
+      case MAConnectionState.disconnected:
         return Icons.cloud_off_rounded;
     }
   }
 
-  Color _getStatusColor(ConnectionState state) {
+  Color _getStatusColor(MAConnectionState state) {
     switch (state) {
-      case ConnectionState.connected:
+      case MAConnectionState.connected:
         return Colors.green;
-      case ConnectionState.connecting:
+      case MAConnectionState.connecting:
         return Colors.orange;
-      case ConnectionState.error:
+      case MAConnectionState.error:
         return Colors.red;
-      case ConnectionState.disconnected:
+      case MAConnectionState.disconnected:
         return Colors.white54;
     }
   }
 
-  String _getStatusText(ConnectionState state) {
+  String _getStatusText(MAConnectionState state) {
     switch (state) {
-      case ConnectionState.connected:
+      case MAConnectionState.connected:
         return 'Connected';
-      case ConnectionState.connecting:
+      case MAConnectionState.connecting:
         return 'Connecting...';
-      case ConnectionState.error:
+      case MAConnectionState.error:
         return 'Connection Error';
-      case ConnectionState.disconnected:
+      case MAConnectionState.disconnected:
         return 'Disconnected';
     }
   }
