@@ -101,15 +101,15 @@ class MusicAssistantAPI {
       _logger.log('Attempting ${useSecure ? "secure (WSS)" : "unsecure (WS)"} connection');
       _logger.log('Final WebSocket URL: $wsUrl');
 
-      // For Cloudflare and reverse proxies, don't include explicit port 443 for WSS
-      // Build the connection URL appropriately
+      // WebSocket.connect() parses URL strings and sets port to 0 if not explicit
+      // We MUST include explicit port to avoid port :0 bug
       String connectionUrl;
       if (_cachedCustomPort != null) {
         // Custom port - include it explicitly
         connectionUrl = '${uri.scheme}://${uri.host}:$_cachedCustomPort/ws';
         _logger.log('Using custom port in URL: $connectionUrl');
-      } else if (uri.hasPort && uri.port != 0 && !(useSecure && uri.port == 443)) {
-        // Explicit non-default port in URL - include it (but not 443 for WSS)
+      } else if (uri.hasPort && uri.port != 0) {
+        // Explicit port in URL - include it
         connectionUrl = '${uri.scheme}://${uri.host}:${uri.port}/ws';
         _logger.log('Using explicit port in URL: $connectionUrl');
       } else if (!useSecure) {
@@ -117,9 +117,9 @@ class MusicAssistantAPI {
         connectionUrl = '${uri.scheme}://${uri.host}:8095/ws';
         _logger.log('Using port 8095 for unsecure connection: $connectionUrl');
       } else {
-        // Secure connection without custom port - omit port for Cloudflare compatibility
-        connectionUrl = '${uri.scheme}://${uri.host}/ws';
-        _logger.log('Using implicit port for secure connection: $connectionUrl');
+        // Secure connection - MUST include port 443 explicitly to avoid port :0
+        connectionUrl = '${uri.scheme}://${uri.host}:443/ws';
+        _logger.log('Using explicit port 443 for secure connection: $connectionUrl');
       }
 
       // Connect using native WebSocket with custom headers
