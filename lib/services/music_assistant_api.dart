@@ -383,13 +383,30 @@ class MusicAssistantAPI {
   // Get stream URL for a track
   String getStreamUrl(String provider, String itemId) {
     var baseUrl = serverUrl;
+    var useSecure = true;
+
+    // Determine protocol
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-      baseUrl = 'http://$baseUrl';
+      baseUrl = 'https://$baseUrl';
+      useSecure = true;
+    } else if (baseUrl.startsWith('http://')) {
+      useSecure = false;
     }
-    if (!baseUrl.contains(':8095')) {
-      final uri = Uri.parse(baseUrl);
-      baseUrl = '${uri.scheme}://${uri.host}:8095';
+
+    // Add port if not specified
+    final uri = Uri.parse(baseUrl);
+    if (!uri.hasPort) {
+      if (useSecure) {
+        // For HTTPS, default to standard port 443
+        baseUrl = '${uri.scheme}://${uri.host}:443';
+      } else {
+        // For HTTP, default to Music Assistant port 8095
+        baseUrl = '${uri.scheme}://${uri.host}:8095';
+      }
+    } else {
+      baseUrl = '${uri.scheme}://${uri.host}:${uri.port}';
     }
+
     return '$baseUrl/api/stream/$provider/$itemId';
   }
 
@@ -399,12 +416,28 @@ class MusicAssistantAPI {
     if (imageUrl == null) return null;
 
     var baseUrl = serverUrl;
+    var useSecure = true;
+
+    // Determine protocol
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-      baseUrl = 'http://$baseUrl';
+      baseUrl = 'https://$baseUrl';
+      useSecure = true;
+    } else if (baseUrl.startsWith('http://')) {
+      useSecure = false;
     }
-    if (!baseUrl.contains(':8095')) {
-      final uri = Uri.parse(baseUrl);
-      baseUrl = '${uri.scheme}://${uri.host}:8095';
+
+    // Add port if not specified
+    final uri = Uri.parse(baseUrl);
+    if (!uri.hasPort) {
+      if (useSecure) {
+        // For HTTPS, default to standard port 443
+        baseUrl = '${uri.scheme}://${uri.host}:443';
+      } else {
+        // For HTTP, default to Music Assistant port 8095
+        baseUrl = '${uri.scheme}://${uri.host}:8095';
+      }
+    } else {
+      baseUrl = '${uri.scheme}://${uri.host}:${uri.port}';
     }
 
     return '$baseUrl/api/image/$size/${Uri.encodeComponent(imageUrl)}';
