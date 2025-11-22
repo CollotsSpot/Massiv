@@ -939,6 +939,40 @@ class MusicAssistantAPI {
     await _sendPlayerCommand(playerId, 'stop');
   }
 
+  /// Set player volume (0-100)
+  Future<void> setVolume(String playerId, int volumeLevel) async {
+    try {
+      _logger.log('Setting volume to $volumeLevel for player $playerId');
+      await _sendCommand(
+        'player_command/volume_set',
+        args: {
+          'player_id': playerId,
+          'volume_level': volumeLevel.clamp(0, 100),
+        },
+      );
+    } catch (e) {
+      _logger.log('Error setting volume: $e');
+      rethrow;
+    }
+  }
+
+  /// Mute or unmute player
+  Future<void> setMute(String playerId, bool muted) async {
+    try {
+      _logger.log('${muted ? "Muting" : "Unmuting"} player $playerId');
+      await _sendCommand(
+        'player_command/volume_mute',
+        args: {
+          'player_id': playerId,
+          'muted': muted,
+        },
+      );
+    } catch (e) {
+      _logger.log('Error setting mute: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _sendPlayerCommand(String playerId, String command) async {
     try {
       _logger.log('Sending player command: $command to $playerId');

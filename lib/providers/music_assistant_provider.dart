@@ -345,6 +345,28 @@ class MusicAssistantProvider with ChangeNotifier {
     }
   }
 
+  Future<void> setVolume(String playerId, int volumeLevel) async {
+    try {
+      await _api?.setVolume(playerId, volumeLevel);
+      // Refresh player state to get updated volume
+      await refreshPlayers();
+    } catch (e) {
+      ErrorHandler.logError('Set volume', e);
+      rethrow;
+    }
+  }
+
+  Future<void> setMute(String playerId, bool muted) async {
+    try {
+      await _api?.setMute(playerId, muted);
+      // Refresh player state to get updated mute status
+      await refreshPlayers();
+    } catch (e) {
+      ErrorHandler.logError('Set mute', e);
+      rethrow;
+    }
+  }
+
   // ============================================================================
   // END PLAYER AND QUEUE MANAGEMENT
   // ============================================================================

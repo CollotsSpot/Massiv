@@ -4,6 +4,7 @@ import '../providers/music_player_provider.dart';
 import '../providers/music_assistant_provider.dart';
 import '../screens/player_screen.dart';
 import '../screens/queue_screen.dart';
+import 'volume_control.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
@@ -103,7 +104,7 @@ class MiniPlayer extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.queue_music),
                       color: Colors.white70,
-                      iconSize: 24,
+                      iconSize: 22,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -113,11 +114,13 @@ class MiniPlayer extends StatelessWidget {
                         );
                       },
                     ),
+                    // Volume control (compact mute button)
+                    const VolumeControl(compact: true),
                     // Playback controls for selected player
                     IconButton(
                       icon: const Icon(Icons.skip_previous_rounded),
                       color: Colors.white,
-                      iconSize: 28,
+                      iconSize: 26,
                       onPressed: maProvider.previousTrackSelectedPlayer,
                     ),
                     IconButton(

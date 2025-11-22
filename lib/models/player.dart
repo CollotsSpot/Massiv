@@ -7,6 +7,8 @@ class Player {
   final bool powered;
   final String state; // 'idle', 'playing', 'paused'
   final String? currentItemId;
+  final int? volumeLevel; // 0-100
+  final bool? volumeMuted;
 
   Player({
     required this.playerId,
@@ -15,10 +17,14 @@ class Player {
     required this.powered,
     required this.state,
     this.currentItemId,
+    this.volumeLevel,
+    this.volumeMuted,
   });
 
   // Derived properties
   bool get isPlaying => state == 'playing';
+  bool get isMuted => volumeMuted ?? false;
+  int get volume => volumeLevel ?? 0;
 
   factory Player.fromJson(Map<String, dynamic> json) {
     return Player(
@@ -28,6 +34,8 @@ class Player {
       powered: json['powered'] as bool? ?? false,
       state: json['state'] as String? ?? 'idle',
       currentItemId: json['current_item_id'] as String?,
+      volumeLevel: json['volume_level'] as int?,
+      volumeMuted: json['volume_muted'] as bool?,
     );
   }
 
@@ -39,6 +47,8 @@ class Player {
       'powered': powered,
       'state': state,
       if (currentItemId != null) 'current_item_id': currentItemId,
+      if (volumeLevel != null) 'volume_level': volumeLevel,
+      if (volumeMuted != null) 'volume_muted': volumeMuted,
     };
   }
 }
