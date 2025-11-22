@@ -512,6 +512,87 @@ class MusicAssistantAPI {
     }
   }
 
+  /// Get playlists
+  Future<List<Playlist>> getPlaylists({
+    int? limit,
+    int? offset,
+    String? search,
+    bool? favoriteOnly,
+  }) async {
+    try {
+      _logger.log('Fetching playlists with limit=$limit, offset=$offset');
+      final response = await _sendCommand(
+        'music/playlists/library_items',
+        args: {
+          if (limit != null) 'limit': limit,
+          if (offset != null) 'offset': offset,
+          if (search != null) 'search': search,
+          if (favoriteOnly != null) 'favorite': favoriteOnly,
+        },
+      );
+
+      final items = response['result'] as List<dynamic>?;
+      if (items == null) return [];
+
+      _logger.log('Got ${items.length} playlists');
+      return items
+          .map((item) => Playlist.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      _logger.log('Error getting playlists: $e');
+      return [];
+    }
+  }
+
+  /// Get playlist details
+  Future<Playlist?> getPlaylistDetails(String provider, String itemId) async {
+    try {
+      final response = await _sendCommand(
+        'music/playlist',
+        args: {
+          'provider': provider,
+          'item_id': itemId,
+        },
+      );
+
+      final result = response['result'];
+      if (result == null) return null;
+
+      return Playlist.fromJson(result as Map<String, dynamic>);
+    } catch (e) {
+      _logger.log('Error getting playlist details: $e');
+      return null;
+    }
+  }
+
+  /// Get playlist tracks
+  Future<List<Track>> getPlaylistTracks(String provider, String itemId) async {
+    try {
+      _logger.log('Fetching playlist tracks for provider=$provider, itemId=$itemId');
+      final response = await _sendCommand(
+        'music/playlists/playlist_tracks',
+        args: {
+          'provider_instance_id_or_domain': provider,
+          'item_id': itemId,
+        },
+      );
+
+      final items = response['result'] as List<dynamic>?;
+      if (items == null) {
+        _logger.log('No result for playlist tracks');
+        return [];
+      }
+
+      _logger.log('Got ${items.length} playlist tracks');
+      return items
+          .map((item) => Track.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      _logger.log('Error getting playlist tracks: $e');
+      return [];
+    }
+  }
+
   // Search
   Future<Map<String, List<MediaItem>>> search(String query) async {
     try {

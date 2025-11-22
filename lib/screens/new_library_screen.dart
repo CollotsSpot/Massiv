@@ -5,6 +5,7 @@ import '../widgets/player_selector.dart';
 import 'library_artists_screen.dart';
 import 'library_albums_screen.dart';
 import 'library_tracks_screen.dart';
+import 'library_playlists_screen.dart';
 import 'settings_screen.dart';
 import 'search_screen.dart';
 
@@ -153,8 +154,15 @@ class NewLibraryScreen extends StatelessWidget {
           context,
           icon: Icons.playlist_play_rounded,
           title: 'Playlists',
-          subtitle: 'Coming soon',
-          onTap: null,
+          subtitle: 'Your playlists',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LibraryPlaylistsScreen(),
+              ),
+            );
+          },
         ),
         _buildMenuTile(
           context,

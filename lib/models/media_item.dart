@@ -225,3 +225,40 @@ class Track extends MediaItem {
   String get artistsString =>
       artists?.map((a) => a.name).join(', ') ?? 'Unknown Artist';
 }
+
+class Playlist extends MediaItem {
+  final String? owner;
+  final bool? isEditable;
+  final int? trackCount;
+
+  Playlist({
+    required super.itemId,
+    required super.provider,
+    required super.name,
+    this.owner,
+    this.isEditable,
+    this.trackCount,
+    super.sortName,
+    super.uri,
+    super.providerMappings,
+    super.metadata,
+    super.favorite,
+  }) : super(mediaType: MediaType.playlist);
+
+  factory Playlist.fromJson(Map<String, dynamic> json) {
+    final item = MediaItem.fromJson(json);
+    return Playlist(
+      itemId: item.itemId,
+      provider: item.provider,
+      name: item.name,
+      owner: json['owner'] as String?,
+      isEditable: json['is_editable'] as bool?,
+      trackCount: json['track_count'] as int?,
+      sortName: item.sortName,
+      uri: item.uri,
+      providerMappings: item.providerMappings,
+      metadata: item.metadata,
+      favorite: item.favorite,
+    );
+  }
+}
