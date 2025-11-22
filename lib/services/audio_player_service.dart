@@ -2,6 +2,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:http/http.dart' as http;
 import '../models/audio_track.dart';
 import 'debug_logger.dart';
+import 'settings_service.dart';
 
 class AudioPlayerService {
   static final AudioPlayerService _instance = AudioPlayerService._internal();
@@ -10,6 +11,7 @@ class AudioPlayerService {
 
   final AudioPlayer _audioPlayer = AudioPlayer();
   final _logger = DebugLogger();
+  String? _authToken;
 
   AudioPlayer get audioPlayer => _audioPlayer;
 
@@ -41,12 +43,32 @@ class AudioPlayerService {
     }
   }
 
+  Future<Map<String, String>> _getStreamHeaders() async {
+    final headers = <String, String>{
+      'User-Agent': 'MusicAssistantMobile/1.0',
+    };
+
+    // Load auth token if not already loaded
+    _authToken ??= await SettingsService.getAuthToken();
+
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $_authToken';
+      _logger.log('🔑 Using authorization token for stream request');
+    } else {
+      _logger.log('⚠️ No auth token configured - stream may fail with 401');
+    }
+
+    return headers;
+  }
+
   Future<void> _testStreamUrl(String url) async {
     try {
       _logger.log('🔍 Testing stream URL accessibility...');
+      final headers = await _getStreamHeaders();
+
       final response = await http.head(
         Uri.parse(url),
-        headers: {'User-Agent': 'MusicAssistantMobile/1.0'},
+        headers: headers,
       ).timeout(const Duration(seconds: 5));
 
       _logger.log('HTTP Response: ${response.statusCode}');
@@ -81,13 +103,14 @@ class AudioPlayerService {
 
           _logger.log('Creating progressive audio source for HTTP stream...');
 
+          // Get headers with authentication
+          final headers = await _getStreamHeaders();
+
           // Use ProgressiveAudioSource for HTTP/HTTPS streams
           // This is specifically designed for progressive streaming
           final audioSource = ProgressiveAudioSource(
             Uri.parse(track.filePath),
-            headers: {
-              'User-Agent': 'MusicAssistantMobile/1.0',
-            },
+            headers: headers,
           );
 
           _logger.log('Setting audio source...');

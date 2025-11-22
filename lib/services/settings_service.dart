@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsService {
   static const String _keyServerUrl = 'server_url';
   static const String _keyWebSocketPort = 'websocket_port';
+  static const String _keyAuthToken = 'auth_token';
   static const String _keyDefaultServer = 'ma.serverscloud.org';
 
   static Future<String> getServerUrl() async {
@@ -28,6 +29,22 @@ class SettingsService {
       await prefs.remove(_keyWebSocketPort);
     } else {
       await prefs.setInt(_keyWebSocketPort, port);
+    }
+  }
+
+  // Get authentication token for stream requests
+  static Future<String?> getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyAuthToken);
+  }
+
+  // Set authentication token for stream requests
+  static Future<void> setAuthToken(String? token) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (token == null || token.isEmpty) {
+      await prefs.remove(_keyAuthToken);
+    } else {
+      await prefs.setString(_keyAuthToken, token);
     }
   }
 

@@ -15,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _serverUrlController = TextEditingController();
   final _wsPortController = TextEditingController();
+  final _authTokenController = TextEditingController();
   bool _isConnecting = false;
 
   @override
@@ -31,12 +32,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (wsPort != null) {
       _wsPortController.text = wsPort.toString();
     }
+
+    final authToken = await SettingsService.getAuthToken();
+    if (authToken != null) {
+      _authTokenController.text = authToken;
+    }
   }
 
   @override
   void dispose() {
     _serverUrlController.dispose();
     _wsPortController.dispose();
+    _authTokenController.dispose();
     super.dispose();
   }
 
@@ -56,6 +63,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
     await SettingsService.setWebSocketPort(wsPort);
+
+    // Save auth token
+    await SettingsService.setAuthToken(
+      _authTokenController.text.trim().isNotEmpty
+        ? _authTokenController.text.trim()
+        : null
+    );
 
     setState(() {
       _isConnecting = true;
@@ -257,6 +271,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 prefixIcon: const Icon(
                   Icons.settings_ethernet_rounded,
+                  color: Colors.white54,
+                ),
+              ),
+              enabled: !_isConnecting,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Authentication Token input
+            const Text(
+              'Authentication Token (Optional)',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Required if your server uses authentication (e.g., Authelia). Leave empty if not needed.',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _authTokenController,
+              style: const TextStyle(color: Colors.white),
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: 'Enter authentication token or session cookie',
+                hintStyle: const TextStyle(color: Colors.white38),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: const Icon(
+                  Icons.vpn_key_rounded,
                   color: Colors.white54,
                 ),
               ),
