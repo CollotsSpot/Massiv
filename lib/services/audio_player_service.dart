@@ -1,5 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import '../models/audio_track.dart';
+import 'debug_logger.dart';
 
 class AudioPlayerService {
   static final AudioPlayerService _instance = AudioPlayerService._internal();
@@ -7,6 +8,7 @@ class AudioPlayerService {
   AudioPlayerService._internal();
 
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final _logger = DebugLogger();
 
   AudioPlayer get audioPlayer => _audioPlayer;
 
@@ -44,9 +46,19 @@ class AudioPlayerService {
       final track = _playlist[index];
 
       try {
-        await _audioPlayer.setFilePath(track.filePath);
+        _logger.log('Loading track: ${track.title} from ${track.filePath}');
+        // Use setUrl for HTTP streams, setFilePath for local files
+        if (track.filePath.startsWith('http://') ||
+            track.filePath.startsWith('https://')) {
+          await _audioPlayer.setUrl(track.filePath);
+          _logger.log('Track loaded from URL successfully');
+        } else {
+          await _audioPlayer.setFilePath(track.filePath);
+          _logger.log('Track loaded from file path successfully');
+        }
       } catch (e) {
-        print('Error loading track: $e');
+        _logger.log('Error loading track: $e');
+        rethrow;
       }
     }
   }
