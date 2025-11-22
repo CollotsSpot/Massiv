@@ -124,12 +124,21 @@ class PlayerQueue {
   final String playerId;
   final List<QueueItem> items;
   final int? currentIndex;
+  final bool? shuffleEnabled;
+  final String? repeatMode; // 'off', 'one', 'all'
 
   PlayerQueue({
     required this.playerId,
     required this.items,
     this.currentIndex,
+    this.shuffleEnabled,
+    this.repeatMode,
   });
+
+  bool get shuffle => shuffleEnabled ?? false;
+  bool get repeatAll => repeatMode == 'all';
+  bool get repeatOne => repeatMode == 'one';
+  bool get repeatOff => repeatMode == 'off' || repeatMode == null;
 
   factory PlayerQueue.fromJson(Map<String, dynamic> json) {
     return PlayerQueue(
@@ -139,6 +148,8 @@ class PlayerQueue {
               .toList() ??
           [],
       currentIndex: json['current_index'] as int?,
+      shuffleEnabled: json['shuffle_enabled'] as bool?,
+      repeatMode: json['repeat_mode'] as String?,
     );
   }
 
@@ -147,6 +158,8 @@ class PlayerQueue {
       'player_id': playerId,
       'items': items.map((i) => i.toJson()).toList(),
       if (currentIndex != null) 'current_index': currentIndex,
+      if (shuffleEnabled != null) 'shuffle_enabled': shuffleEnabled,
+      if (repeatMode != null) 'repeat_mode': repeatMode,
     };
   }
 

@@ -367,6 +367,46 @@ class MusicAssistantProvider with ChangeNotifier {
     }
   }
 
+  Future<void> toggleShuffle(String queueId) async {
+    try {
+      await _api?.toggleShuffle(queueId);
+      // Queue state will be updated on next poll
+    } catch (e) {
+      ErrorHandler.logError('Toggle shuffle', e);
+      rethrow;
+    }
+  }
+
+  Future<void> setRepeatMode(String queueId, String mode) async {
+    try {
+      await _api?.setRepeatMode(queueId, mode);
+      // Queue state will be updated on next poll
+    } catch (e) {
+      ErrorHandler.logError('Set repeat mode', e);
+      rethrow;
+    }
+  }
+
+  /// Cycle through repeat modes: off -> all -> one -> off
+  Future<void> cycleRepeatMode(String queueId, String? currentMode) async {
+    String nextMode;
+    switch (currentMode) {
+      case 'off':
+      case null:
+        nextMode = 'all';
+        break;
+      case 'all':
+        nextMode = 'one';
+        break;
+      case 'one':
+        nextMode = 'off';
+        break;
+      default:
+        nextMode = 'off';
+    }
+    await setRepeatMode(queueId, nextMode);
+  }
+
   // ============================================================================
   // END PLAYER AND QUEUE MANAGEMENT
   // ============================================================================

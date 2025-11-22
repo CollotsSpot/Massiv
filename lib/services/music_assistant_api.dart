@@ -973,6 +973,37 @@ class MusicAssistantAPI {
     }
   }
 
+  /// Toggle shuffle mode for queue
+  Future<void> toggleShuffle(String queueId) async {
+    try {
+      _logger.log('Toggling shuffle for queue $queueId');
+      await _sendCommand(
+        'player_queues/shuffle',
+        args: {'queue_id': queueId},
+      );
+    } catch (e) {
+      _logger.log('Error toggling shuffle: $e');
+      rethrow;
+    }
+  }
+
+  /// Set repeat mode for queue: 'off', 'one', 'all'
+  Future<void> setRepeatMode(String queueId, String mode) async {
+    try {
+      _logger.log('Setting repeat mode to $mode for queue $queueId');
+      await _sendCommand(
+        'player_queues/repeat',
+        args: {
+          'queue_id': queueId,
+          'repeat_mode': mode, // 'off', 'one', 'all'
+        },
+      );
+    } catch (e) {
+      _logger.log('Error setting repeat mode: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _sendPlayerCommand(String playerId, String command) async {
     try {
       _logger.log('Sending player command: $command to $playerId');
