@@ -297,16 +297,19 @@ class MusicAssistantAPI {
     String? artistId,
   }) async {
     try {
-      _logger.log('Fetching albums with limit=$limit, offset=$offset');
+      _logger.log('Fetching albums with limit=$limit, offset=$offset, artistId=$artistId');
+      final args = <String, dynamic>{
+        if (limit != null) 'limit': limit,
+        if (offset != null) 'offset': offset,
+        if (search != null) 'search': search,
+        if (favoriteOnly != null) 'favorite': favoriteOnly,
+        if (artistId != null) 'artist': artistId,
+      };
+      _logger.log('Albums API args: $args');
+
       final response = await _sendCommand(
         'music/albums/library_items',
-        args: {
-          if (limit != null) 'limit': limit,
-          if (offset != null) 'offset': offset,
-          if (search != null) 'search': search,
-          if (favoriteOnly != null) 'favorite': favoriteOnly,
-          if (artistId != null) 'artist': artistId,
-        },
+        args: args,
       );
 
       final items = response['result'] as List<dynamic>?;
