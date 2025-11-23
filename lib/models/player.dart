@@ -9,6 +9,8 @@ class Player {
   final String? currentItemId;
   final int? volumeLevel; // 0-100
   final bool? volumeMuted;
+  final double? elapsedTime; // Seconds elapsed in current track
+  final double? elapsedTimeLastUpdated; // Unix timestamp when elapsed_time was last updated
 
   Player({
     required this.playerId,
@@ -19,6 +21,8 @@ class Player {
     this.currentItemId,
     this.volumeLevel,
     this.volumeMuted,
+    this.elapsedTime,
+    this.elapsedTimeLastUpdated,
   });
 
   // Derived properties
@@ -26,13 +30,36 @@ class Player {
   bool get isMuted => volumeMuted ?? false;
   int get volume => volumeLevel ?? 0;
 
+  // Calculate current elapsed time (interpolated if playing)
+  double get currentElapsedTime {
+    if (elapsedTime == null || elapsedTimeLastUpdated == null) return 0;
+
+    if (!isPlaying) return elapsedTime!;
+
+    // If playing, interpolate based on time since last update
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final timeSinceUpdate = now - elapsedTimeLastUpdated!;
+    return elapsedTime! + timeSinceUpdate;
+  }
+
   factory Player.fromJson(Map<String, dynamic> json) {
     // Extract current_item_id from current_media if available
     String? currentItemId = json['current_item_id'] as String?;
-    if (currentItemId == null && json.containsKey('current_media')) {
+    double? elapsedTime;
+    double? elapsedTimeLastUpdated;
+
+    if (json.containsKey('current_media')) {
       final currentMedia = json['current_media'] as Map<String, dynamic>?;
-      currentItemId = currentMedia?['queue_item_id'] as String?;
+      if (currentMedia != null) {
+        currentItemId ??= currentMedia['queue_item_id'] as String?;
+        elapsedTime = (currentMedia['elapsed_time'] as num?)?.toDouble();
+        elapsedTimeLastUpdated = (currentMedia['elapsed_time_last_updated'] as num?)?.toDouble();
+      }
     }
+
+    // Also check top-level elapsed time fields
+    elapsedTime ??= (json['elapsed_time'] as num?)?.toDouble();
+    elapsedTimeLastUpdated ??= (json['elapsed_time_last_updated'] as num?)?.toDouble();
 
     return Player(
       playerId: json['player_id'] as String,
@@ -43,6 +70,8 @@ class Player {
       currentItemId: currentItemId,
       volumeLevel: json['volume_level'] as int?,
       volumeMuted: json['volume_muted'] as bool?,
+      elapsedTime: elapsedTime,
+      elapsedTimeLastUpdated: elapsedTimeLastUpdated,
     );
   }
 
@@ -56,6 +85,8 @@ class Player {
       if (currentItemId != null) 'current_item_id': currentItemId,
       if (volumeLevel != null) 'volume_level': volumeLevel,
       if (volumeMuted != null) 'volume_muted': volumeMuted,
+      if (elapsedTime != null) 'elapsed_time': elapsedTime,
+      if (elapsedTimeLastUpdated != null) 'elapsed_time_last_updated': elapsedTimeLastUpdated,
     };
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/music_assistant_provider.dart';
@@ -15,11 +16,31 @@ class NowPlayingScreen extends StatefulWidget {
 class _NowPlayingScreenState extends State<NowPlayingScreen> {
   PlayerQueue? _queue;
   bool _isLoadingQueue = true;
+  Timer? _progressTimer;
 
   @override
   void initState() {
     super.initState();
     _loadQueue();
+    _startProgressTimer();
+  }
+
+  @override
+  void dispose() {
+    _progressTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startProgressTimer() {
+    // Update UI every second when playing to show progress
+    _progressTimer?.cancel();
+    _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          // Just trigger rebuild to update elapsed time
+        });
+      }
+    });
   }
 
   Future<void> _loadQueue() async {
@@ -200,10 +221,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
               ],
               const SizedBox(height: 32),
 
-              // Progress Bar (showing indeterminate progress while playing)
+              // Progress Bar (showing elapsed time)
               if (currentTrack.duration != null) ...[
                 Slider(
-                  value: 0, // TODO: Track elapsed time from Music Assistant API
+                  value: selectedPlayer.currentElapsedTime.clamp(0, currentTrack.duration!.inSeconds.toDouble()),
                   max: currentTrack.duration!.inSeconds.toDouble(),
                   onChanged: null, // TODO: Implement seek
                   activeColor: Colors.white,
@@ -215,7 +236,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '--:--', // TODO: Show elapsed time
+                        _formatDuration(selectedPlayer.currentElapsedTime.toInt()),
                         style: const TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                       Text(

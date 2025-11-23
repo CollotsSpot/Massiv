@@ -509,6 +509,20 @@ class MusicAssistantProvider with ChangeNotifier {
       // Refresh players list to get latest player state
       await refreshPlayers();
 
+      // Only show tracks if player is available and not idle
+      final shouldShowTrack = _selectedPlayer!.available &&
+                             (_selectedPlayer!.state == 'playing' || _selectedPlayer!.state == 'paused');
+
+      if (!shouldShowTrack) {
+        // Clear track if player is unavailable or idle
+        if (_currentTrack != null) {
+          _currentTrack = null;
+          _logger.log('🗑️ Cleared track - player unavailable or idle (state: ${_selectedPlayer!.state}, available: ${_selectedPlayer!.available})');
+          notifyListeners();
+        }
+        return;
+      }
+
       // Get the player's queue
       final queue = await getQueue(_selectedPlayer!.playerId);
 
@@ -537,11 +551,18 @@ class MusicAssistantProvider with ChangeNotifier {
 
   /// Control the selected player
   Future<void> playPauseSelectedPlayer() async {
-    if (_selectedPlayer == null) return;
+    if (_selectedPlayer == null) {
+      _logger.log('⚠️ playPause: No player selected');
+      return;
+    }
+
+    _logger.log('🎮 playPause: ${_selectedPlayer!.name} - current state: ${_selectedPlayer!.state}');
 
     if (_selectedPlayer!.isPlaying) {
+      _logger.log('⏸️ Pausing player');
       await pausePlayer(_selectedPlayer!.playerId);
     } else {
+      _logger.log('▶️ Resuming player');
       await resumePlayer(_selectedPlayer!.playerId);
     }
 

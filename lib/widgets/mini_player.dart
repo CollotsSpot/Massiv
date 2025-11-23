@@ -19,6 +19,8 @@ class MiniPlayer extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final imageUrl = maProvider.getImageUrl(currentTrack, size: 96);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -55,19 +57,38 @@ class MiniPlayer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Row(
                   children: [
-                    // Album art placeholder
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white12,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.music_note_rounded,
-                        color: Colors.white54,
-                        size: 24,
-                      ),
+                    // Album art
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: imageUrl != null
+                          ? Image.network(
+                              imageUrl,
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 48,
+                                  height: 48,
+                                  color: Colors.white12,
+                                  child: const Icon(
+                                    Icons.music_note_rounded,
+                                    color: Colors.white54,
+                                    size: 24,
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
+                              width: 48,
+                              height: 48,
+                              color: Colors.white12,
+                              child: const Icon(
+                                Icons.music_note_rounded,
+                                color: Colors.white54,
+                                size: 24,
+                              ),
+                            ),
                     ),
                     const SizedBox(width: 12),
                     // Track info

@@ -1102,9 +1102,30 @@ class MusicAssistantAPI {
 
   // Get image URL
   String? getImageUrl(MediaItem item, {int size = 256}) {
-    final imageUrl = item.metadata?['image'];
-    if (imageUrl == null) return null;
+    // Images are in metadata.images as an array
+    final images = item.metadata?['images'] as List<dynamic>?;
+    if (images == null || images.isEmpty) return null;
 
+    // Try to find a remotely accessible image first, otherwise use first image
+    Map<String, dynamic>? selectedImage;
+    for (var img in images) {
+      final imgMap = img as Map<String, dynamic>;
+      if (imgMap['remotely_accessible'] == true) {
+        selectedImage = imgMap;
+        break;
+      }
+    }
+    selectedImage ??= images.first as Map<String, dynamic>;
+
+    final imagePath = selectedImage['path'] as String?;
+    if (imagePath == null) return null;
+
+    // If path is already a full URL, use it directly
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    // Otherwise, use the imageproxy endpoint
     var baseUrl = serverUrl;
     var useSecure = true;
 
@@ -1134,7 +1155,9 @@ class MusicAssistantAPI {
       baseUrl = '${uri.scheme}://${uri.host}:${uri.port}';
     }
 
-    return '$baseUrl/api/image/$size/${Uri.encodeComponent(imageUrl)}';
+    final provider = selectedImage['provider'] as String?;
+    // Use the imageproxy endpoint
+    return '$baseUrl/imageproxy?provider=${Uri.encodeComponent(provider ?? "")}&size=$size&fmt=jpeg&path=${Uri.encodeComponent(imagePath)}';
   }
 
   void _updateConnectionState(MAConnectionState state) {
