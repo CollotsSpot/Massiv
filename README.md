@@ -1,6 +1,11 @@
-# Amass
+<div align="center">
+  <img src="assets/images/logo.png" alt="Amass Logo" height="80">
+  <h1>Amass</h1>
+  <p>A minimalistic mobile client for <a href="https://music-assistant.io/">Music Assistant</a></p>
+  <p>Stream your entire music library from your Music Assistant server to your mobile device.</p>
+</div>
 
-A minimalistic Flutter mobile client for [Music Assistant](https://music-assistant.io/) - stream your entire music library from your Music Assistant server to your mobile device.
+---
 
 ## Features
 
@@ -21,19 +26,47 @@ A minimalistic Flutter mobile client for [Music Assistant](https://music-assista
 - Background audio playback support
 - Queue management
 
-## Getting Started
+## Download
+
+Download the latest APK from [GitHub Actions](https://github.com/CollotsSpot/Amass/actions) - look for the "amass-apk" artifact in successful builds.
+
+## Setup
+
+1. Launch the app
+2. Navigate to the **Library** tab
+3. Tap **Configure Server** or go to **Settings**
+4. Enter your Music Assistant server URL (e.g., `music.serverscloud.org` or `192.168.1.100`)
+5. Tap **Connect**
+6. Browse your library and start playing music!
+
+## Requirements
+
+- Music Assistant server (v2.7.0 or later recommended)
+- Network connectivity to your Music Assistant server
+- Android device (Android 5.0+)
+
+## About Music Assistant
+
+Amass is a client for [Music Assistant](https://music-assistant.io/), an open-source music library manager and player that integrates with various music sources and streaming providers. You'll need a running Music Assistant server to use this app.
+
+Learn more: [music-assistant.io](https://music-assistant.io/)
+
+## License
+
+MIT License
+
+---
+
+## For Developers
+
+<details>
+<summary>Build from Source</summary>
 
 ### Prerequisites
-
 - Flutter SDK (>=3.0.0)
 - Dart SDK
-- Android Studio / Xcode for mobile development
 
-### Download APK
-
-Download the latest APK from [GitHub Actions](https://github.com/CollotsSpot/Amass/actions) artifacts (look for the "amass-apk" artifact in successful builds).
-
-### Build from Source
+### Build Instructions
 
 1. Clone the repository
 ```bash
@@ -51,58 +84,23 @@ flutter pub get
 flutter pub run flutter_launcher_icons
 ```
 
-4. Run the app
-```bash
-flutter run
-```
-
-Or build an APK:
+4. Build APK
 ```bash
 flutter build apk --release
 ```
+
 The APK will be available at `build/app/outputs/flutter-apk/app-release.apk`
 
-### Setup
+</details>
 
-1. Launch the app
-2. Navigate to the **Library** tab
-3. Tap **Configure Server** or go to **Settings**
-4. Enter your Music Assistant server URL (e.g., `music.serverscloud.org` or `192.168.1.100`)
-5. Tap **Connect**
-6. Browse your library and start playing music!
-
-## Requirements
-
-- Music Assistant server (v2.7.0 or later recommended)
-- Network connectivity to your Music Assistant server
-- Android device (API 21+) or iOS device
-
-## Architecture
-
-- **lib/main.dart** - App entry point with multi-provider setup
-- **lib/screens/** - UI screens (Player, Library, Settings, Album Details)
-- **lib/widgets/** - Reusable UI components (Player controls, Progress bar, etc.)
-- **lib/models/** - Data models (MediaItem, Artist, Album, Track, AudioTrack)
-- **lib/services/** - Business logic (MusicAssistantAPI, AudioPlayerService, SettingsService)
-- **lib/providers/** - State management (MusicPlayerProvider, MusicAssistantProvider)
-
-## Key Technologies
+<details>
+<summary>Technologies Used</summary>
 
 - **Flutter** - Cross-platform mobile framework
 - **just_audio** - Audio playback
 - **audio_service** - Background audio support
-- **web_socket_channel** - WebSocket communication with Music Assistant server
+- **web_socket_channel** - WebSocket communication
 - **provider** - State management
 - **shared_preferences** - Local settings storage
 
-## Music Assistant API
-
-The app communicates with Music Assistant using:
-- WebSocket connection on port 8095
-- JSON-RPC style message protocol
-- HTTP streaming endpoints for audio playback
-- Support for browsing library and searching content
-
-## License
-
-MIT License
+</details>
