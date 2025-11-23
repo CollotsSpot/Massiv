@@ -427,14 +427,13 @@ class MusicAssistantProvider with ChangeNotifier {
 
       if (_availablePlayers.isNotEmpty) {
         // Smart player selection logic:
-        // 1. If a player is already selected and still available, keep it
-        // 2. Otherwise, select the first player that's currently playing
-        // 3. Fall back to builtin player if available
-        // 4. Finally, just pick the first available player
+        // 1. If a player is already selected and still available, keep it (ALWAYS)
+        // 2. Only auto-select a player if none is currently selected
+        // 3. Prefer a playing player, then first available player
 
         Player? playerToSelect;
 
-        // Keep current selection if still valid
+        // Keep current selection if still valid - ALWAYS prefer this
         if (_selectedPlayer != null) {
           final stillAvailable = _availablePlayers.any(
             (p) => p.playerId == _selectedPlayer!.playerId && p.available,
@@ -447,25 +446,22 @@ class MusicAssistantProvider with ChangeNotifier {
           }
         }
 
-        // If no current selection, find first playing player
+        // Only auto-select if NO player is currently selected
         if (playerToSelect == null) {
+          // Try to find a playing player first
           try {
             playerToSelect = _availablePlayers.firstWhere(
               (p) => p.state == 'playing' && p.available,
             );
             _logger.log('Auto-selected playing player: ${playerToSelect.name}');
           } catch (e) {
-            // No playing player found
+            // No playing player found, pick first available
+            playerToSelect = _availablePlayers.firstWhere(
+              (p) => p.available,
+              orElse: () => _availablePlayers.first,
+            );
+            _logger.log('Selected first available player: ${playerToSelect.name}');
           }
-        }
-
-        // Final fallback to first available player
-        if (playerToSelect == null) {
-          playerToSelect = _availablePlayers.firstWhere(
-            (p) => p.available,
-            orElse: () => _availablePlayers.first,
-          );
-          _logger.log('Selected first available player: ${playerToSelect.name}');
         }
 
         selectPlayer(playerToSelect);

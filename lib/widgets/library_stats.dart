@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class LibraryStats extends StatelessWidget {
+class LibraryStats extends StatefulWidget {
   final Future<Map<String, int>> Function() loadStats;
 
   const LibraryStats({
@@ -9,9 +9,22 @@ class LibraryStats extends StatelessWidget {
   });
 
   @override
+  State<LibraryStats> createState() => _LibraryStatsState();
+}
+
+class _LibraryStatsState extends State<LibraryStats> {
+  late Future<Map<String, int>> _statsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _statsFuture = widget.loadStats();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, int>>(
-      future: loadStats(),
+      future: _statsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(

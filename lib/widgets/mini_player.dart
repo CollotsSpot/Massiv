@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/music_assistant_provider.dart';
+import '../screens/now_playing_screen.dart';
 import '../screens/queue_screen.dart';
 import 'volume_control.dart';
 
@@ -23,7 +24,7 @@ class MiniPlayer extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const QueueScreen(),
+            builder: (context) => const NowPlayingScreen(),
           ),
         );
       },
@@ -41,12 +42,12 @@ class MiniPlayer extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Progress indicator (simple for now - just shows if playing)
-            LinearProgressIndicator(
-              value: selectedPlayer.isPlaying ? null : 0,
-              backgroundColor: Colors.white.withOpacity(0.1),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              minHeight: 2,
+            // Status indicator bar
+            Container(
+              height: 2,
+              color: selectedPlayer.isPlaying
+                  ? Colors.white.withOpacity(0.3)
+                  : Colors.white.withOpacity(0.1),
             ),
             // Player content
             Expanded(

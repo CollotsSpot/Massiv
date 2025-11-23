@@ -4,7 +4,7 @@ import '../models/media_item.dart';
 import '../providers/music_assistant_provider.dart';
 import '../screens/album_details_screen.dart';
 
-class AlbumRow extends StatelessWidget {
+class AlbumRow extends StatefulWidget {
   final String title;
   final Future<List<Album>> Function() loadAlbums;
 
@@ -15,6 +15,19 @@ class AlbumRow extends StatelessWidget {
   });
 
   @override
+  State<AlbumRow> createState() => _AlbumRowState();
+}
+
+class _AlbumRowState extends State<AlbumRow> {
+  late Future<List<Album>> _albumsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _albumsFuture = widget.loadAlbums();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,7 +35,7 @@ class AlbumRow extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
-            title,
+            widget.title,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -32,7 +45,7 @@ class AlbumRow extends StatelessWidget {
         SizedBox(
           height: 200,
           child: FutureBuilder<List<Album>>(
-            future: loadAlbums(),
+            future: _albumsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
