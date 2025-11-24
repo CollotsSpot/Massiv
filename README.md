@@ -43,7 +43,7 @@ Download the latest release from the [Releases page](https://github.com/CollotsS
 1. Launch the app
 2. Navigate to the **Library** tab
 3. Tap **Configure Server** or go to **Settings**
-4. Enter your Music Assistant server URL (e.g., `music.serverscloud.org` or `192.168.1.100`)
+4. Enter your Music Assistant server URL (e.g., `music.example.com` or `192.168.1.100`)
 5. Tap **Connect**
 6. Browse your library and control playback on your Music Assistant players!
 
