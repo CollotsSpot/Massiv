@@ -100,15 +100,28 @@ class _VolumeControlState extends State<VolumeControl> {
                   print('🔊 Calling setVolume with $volumeLevel');
                   await maProvider.setVolume(player.playerId, volumeLevel);
                   print('✅ Volume set complete');
+
+                  // Wait for the player state to update by polling
+                  for (int i = 0; i < 10; i++) {
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (mounted) {
+                      final updatedPlayer = maProvider.selectedPlayer;
+                      print('🔊 Poll $i: player volume = ${updatedPlayer?.volume}, target = $volumeLevel');
+                      if (updatedPlayer != null && (updatedPlayer.volume - volumeLevel).abs() <= 2) {
+                        print('✅ Volume updated on server');
+                        break;
+                      }
+                    }
+                  }
                 } catch (e) {
                   print('❌ Error setting volume: $e');
                 } finally {
-                  // Wait a moment before clearing pending volume to ensure state is updated
-                  await Future.delayed(const Duration(milliseconds: 300));
-                  setState(() {
-                    _pendingVolume = null;
-                  });
-                  print('🔊 Cleared pending volume');
+                  if (mounted) {
+                    setState(() {
+                      _pendingVolume = null;
+                    });
+                    print('🔊 Cleared pending volume');
+                  }
                 }
               },
             ),

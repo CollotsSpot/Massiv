@@ -340,8 +340,8 @@ class MusicAssistantProvider with ChangeNotifier {
   Future<void> setVolume(String playerId, int volumeLevel) async {
     try {
       await _api?.setVolume(playerId, volumeLevel);
-      // Refresh player state to get updated volume
-      await refreshPlayers();
+      // Don't refresh immediately - let automatic polling pick up the change
+      // This prevents the slider from snapping back before the server updates
     } catch (e) {
       ErrorHandler.logError('Set volume', e);
       rethrow;
