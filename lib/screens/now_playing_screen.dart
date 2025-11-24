@@ -116,96 +116,85 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 
     final imageUrl = maProvider.getImageUrl(currentTrack, size: 512);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF1a1a1a),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          selectedPlayer.name,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-            fontWeight: FontWeight.w300,
+    return Hero(
+      tag: HeroTags.nowPlayingBackground,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1a1a1a),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text(
+            selectedPlayer.name,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.w300,
+            ),
           ),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.queue_music),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const QueueScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.queue_music),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const QueueScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
             children: [
               const Spacer(),
               // Album Art with Hero animation
-              Hero(
-                tag: HeroTags.nowPlayingArt,
-                flightShuttleBuilder: (
-                  flightContext,
-                  animation,
-                  flightDirection,
-                  fromHeroContext,
-                  toHeroContext,
-                ) {
-                  final Hero toHero = toHeroContext.widget as Hero;
-                  return ScaleTransition(
-                    scale: animation.drive(
-                      Tween<double>(begin: 0.0, end: 1.0).chain(
-                        CurveTween(curve: Curves.fastOutSlowIn),
-                      ),
-                    ),
-                    child: toHero.child,
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: imageUrl != null
-                          ? Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              cacheWidth: 1024,
-                              cacheHeight: 1024,
-                              filterQuality: FilterQuality.medium,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final size = constraints.maxWidth.clamp(200.0, 400.0);
+                  return Center(
+                    child: Hero(
+                      tag: HeroTags.nowPlayingArt,
+                      child: Container(
+                        width: size,
+                        height: size,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: imageUrl != null
+                              ? Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  cacheWidth: 1024,
+                                  cacheHeight: 1024,
+                                  filterQuality: FilterQuality.medium,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: const Color(0xFF2a2a2a),
+                                      child: const Icon(
+                                        Icons.music_note_rounded,
+                                        color: Colors.white24,
+                                        size: 120,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Container(
                                   color: const Color(0xFF2a2a2a),
                                   child: const Icon(
                                     Icons.music_note_rounded,
                                     color: Colors.white24,
                                     size: 120,
                                   ),
-                                );
-                              },
-                            )
-                          : Container(
-                              color: const Color(0xFF2a2a2a),
-                              child: const Icon(
-                                Icons.music_note_rounded,
-                                color: Colors.white24,
-                                size: 120,
-                              ),
-                            ),
+                                ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 40),
 
@@ -391,6 +380,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
               ),
               const Spacer(),
             ],
+            ),
           ),
         ),
       ),
