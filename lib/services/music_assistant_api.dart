@@ -74,6 +74,16 @@ class MusicAssistantAPI {
         useSecure = wsUrl.startsWith('wss://');
       }
 
+      // Get or generate a persistent client ID to prevent ghost players
+      var clientId = await SettingsService.getBuiltinPlayerId();
+      if (clientId == null) {
+        clientId = _uuid.v4();
+        await SettingsService.setBuiltinPlayerId(clientId);
+        _logger.log('Generated and saved new client ID: $clientId');
+      } else {
+        _logger.log('Using existing client ID: $clientId');
+      }
+
       // Construct WebSocket URL with proper port handling
       final uri = Uri.parse(wsUrl);
 
@@ -85,6 +95,7 @@ class MusicAssistantAPI {
           host: uri.host,
           port: _cachedCustomPort,
           path: '/ws',
+          queryParameters: {'client_id': clientId},
         );
         _logger.log('Using custom WebSocket port from settings: $_cachedCustomPort');
       } else if (uri.hasPort) {
@@ -94,6 +105,7 @@ class MusicAssistantAPI {
           host: uri.host,
           port: uri.port,
           path: '/ws',
+          queryParameters: {'client_id': clientId},
         );
         _logger.log('Using port from URL: ${uri.port}');
       } else {
@@ -105,6 +117,7 @@ class MusicAssistantAPI {
             host: uri.host,
             port: 8095,
             path: '/ws',
+            queryParameters: {'client_id': clientId},
           );
           _logger.log('Using port 8095 for unsecure connection');
         } else {
@@ -115,6 +128,7 @@ class MusicAssistantAPI {
             host: uri.host,
             // NO PORT - let it use default 443 implicitly
             path: '/ws',
+            queryParameters: {'client_id': clientId},
           );
           _logger.log('Using implicit default port (443) for secure connection');
         }
