@@ -51,6 +51,31 @@ class _LoginScreenState extends State<LoginScreen> {
   
   // ... existing code ...
 
+  String _normalizeServerUrl(String url) {
+    // Remove any trailing slashes
+    url = url.trim();
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+
+    // If URL already has a protocol, return it
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    // If it's an IP address or localhost, default to http://
+    if (url.startsWith('192.') ||
+        url.startsWith('10.') ||
+        url.startsWith('172.') ||
+        url == 'localhost' ||
+        url.startsWith('127.')) {
+      return 'http://$url';
+    }
+
+    // For domain names, default to https://
+    return 'https://$url';
+  }
+
   Future<void> _connect() async {
     if (_serverUrlController.text.trim().isEmpty) {
       setState(() {
