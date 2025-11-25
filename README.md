@@ -1,9 +1,14 @@
 <div align="center">
-  <img src="assets/images/logo.png" alt="Amass Logo" height="120">
-  <h1>Amass Your Music</h1>
+  <h1>Assistant To The Music</h1>
   <p>A minimalistic mobile client for <a href="https://music-assistant.io/">Music Assistant</a></p>
   <p>Control your Music Assistant server and manage your entire music library from your mobile device.</p>
 </div>
+
+---
+
+## Disclaimer
+
+I am not a developer. This application was created using **Claude Code** and **Gemini CLI**.
 
 ---
 
@@ -78,8 +83,8 @@ MIT License
 
 1. Clone the repository
 ```bash
-git clone https://github.com/CollotsSpot/Amass.git
-cd Amass
+git clone https://github.com/CollotsSpot/AssistantToTheMusic.git
+cd AssistantToTheMusic
 ```
 
 2. Install dependencies
