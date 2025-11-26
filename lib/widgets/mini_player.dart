@@ -36,11 +36,11 @@ class MiniPlayer extends StatelessWidget {
             );
           },
           child: Container(
-            height: 96, // 1.5x the standard mini player height (64 * 1.5)
-            margin: const EdgeInsets.only(left: 8, right: 8, top: 4),
+            height: 80,
+            margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(24), // Quarter circle = height/4 (96/4=24)
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.3),
@@ -51,32 +51,28 @@ class MiniPlayer extends StatelessWidget {
             ),
             child: Hero(
               tag: HeroTags.nowPlayingBackground,
+              flightShuttleBuilder: (context, animation, direction, fromContext, toContext) {
+                return Material(
+                  color: Colors.transparent,
+                  child: toContext.widget,
+                );
+              },
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Column(
-                    children: [
-                      // Status indicator bar
-                      Container(
-                      height: 3,
-                      color: selectedPlayer.isPlaying
-                          ? colorScheme.primary.withOpacity(0.8)
-                          : colorScheme.onSurface.withOpacity(0.1),
-                    ),
-                    // Player content
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Row(
                           children: [
                             // Album art with Hero animation
                             Hero(
                               tag: HeroTags.nowPlayingArt,
+                              transitionOnUserGestures: true,
                               child: Container(
-                                width: 64,
-                                height: 64,
+                                width: 72,
+                                height: 72,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: imageUrl != null
@@ -119,18 +115,18 @@ class MiniPlayer extends StatelessWidget {
                                     currentTrack.name,
                                     style: TextStyle(
                                       color: colorScheme.onSurface,
-                                      fontSize: 14,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 4),
                                   Text(
                                     currentTrack.artistsString,
                                     style: TextStyle(
                                       color: colorScheme.onSurface.withOpacity(0.7),
-                                      fontSize: 12,
+                                      fontSize: 14,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -155,6 +151,7 @@ class MiniPlayer extends StatelessWidget {
                             // Playback controls for selected player
                             Hero(
                               tag: HeroTags.nowPlayingPreviousButton,
+                              transitionOnUserGestures: true,
                               child: Material(
                                 color: Colors.transparent,
                                 child: AnimatedIconButton(
@@ -178,6 +175,7 @@ class MiniPlayer extends StatelessWidget {
                             ),
                             Hero(
                               tag: HeroTags.nowPlayingPlayButton,
+                              transitionOnUserGestures: true,
                               child: Material(
                                 color: Colors.transparent,
                                 child: AnimatedIconButton(
@@ -203,6 +201,7 @@ class MiniPlayer extends StatelessWidget {
                             ),
                             Hero(
                               tag: HeroTags.nowPlayingNextButton,
+                              transitionOnUserGestures: true,
                               child: Material(
                                 color: Colors.transparent,
                                 child: AnimatedIconButton(
@@ -228,7 +227,6 @@ class MiniPlayer extends StatelessWidget {
                         ),
                       ),
                     ),
-                    ],
                   ),
                 ),
               ),

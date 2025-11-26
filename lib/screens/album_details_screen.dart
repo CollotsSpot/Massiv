@@ -667,7 +667,7 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> with SingleTick
                 childCount: _tracks.length,
               ),
             ),
-          const SliverToBoxAdapter(child: SizedBox(height: 108)), // Extra space for floating mini player (96px height + 12px padding)
+          const SliverToBoxAdapter(child: SizedBox(height: 96)), // Extra space for floating mini player (80px height + 16px padding)
         ],
       ),
           // Floating mini player at bottom of screen
