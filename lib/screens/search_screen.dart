@@ -15,7 +15,7 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => SearchScreenState();
 }
 
-class SearchScreenState extends State<SearchScreen> with AutomaticKeepAliveClientMixin {
+class SearchScreenState extends State<SearchScreen> {
   late TextEditingController _searchController;
   late FocusNode _focusNode;
   Map<String, List<MediaItem>> _searchResults = {
@@ -28,9 +28,6 @@ class SearchScreenState extends State<SearchScreen> with AutomaticKeepAliveClien
   String _activeFilter = 'all';
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   void initState() {
     super.initState();
 
@@ -41,17 +38,11 @@ class SearchScreenState extends State<SearchScreen> with AutomaticKeepAliveClien
 
     _focusNode = FocusNode();
 
-    // Only auto-focus if explicitly requested (when navigating from other screens)
+    // Auto-focus if explicitly requested (when navigating to search screen)
     if (widget.shouldAutoFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _focusNode.requestFocus();
       });
-    }
-  }
-
-  void requestFocus() {
-    if (mounted) {
-      _focusNode.requestFocus();
     }
   }
 
@@ -92,7 +83,6 @@ class SearchScreenState extends State<SearchScreen> with AutomaticKeepAliveClien
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final maProvider = context.watch<MusicAssistantProvider>();
     final colorScheme = Theme.of(context).colorScheme;
 

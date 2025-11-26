@@ -14,20 +14,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  late PageController _pageController;
-  final GlobalKey<SearchScreenState> _searchScreenKey = GlobalKey<SearchScreenState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _selectedIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,24 +27,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
         setState(() {
           _selectedIndex = 0;
-          _pageController.jumpToPage(0);
         });
       },
       child: Scaffold(
         backgroundColor: colorScheme.background,
-        body: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(), // Disable swipe navigation
-          onPageChanged: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
+        body: Stack(
           children: [
-            const NewHomeScreen(),
-            const NewLibraryScreen(),
-            SearchScreen(key: _searchScreenKey),
-            const SettingsScreen(),
+            // Home and Library stay in tree with IndexedStack for state preservation
+            Offstage(
+              offstage: _selectedIndex > 1,
+              child: IndexedStack(
+                index: _selectedIndex.clamp(0, 1),
+                children: const [
+                  NewHomeScreen(),
+                  NewLibraryScreen(),
+                ],
+              ),
+            ),
+            // Search and Settings are conditionally rendered (not in tree when not visible)
+            if (_selectedIndex == 2)
+              const SearchScreen(shouldAutoFocus: true),
+            if (_selectedIndex == 3)
+              const SettingsScreen(),
           ],
         ),
         bottomNavigationBar: Column(
@@ -87,15 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() {
                     _selectedIndex = index;
                   });
-
-                  _pageController.jumpToPage(index);
-
-                  // Request focus on search field when switching to search tab
-                  if (index == 2) {
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      _searchScreenKey.currentState?.requestFocus();
-                    });
-                  }
                 },
                 backgroundColor: Colors.transparent,
                 selectedItemColor: colorScheme.primary,
