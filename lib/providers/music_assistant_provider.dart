@@ -161,7 +161,7 @@ class MusicAssistantProvider with ChangeNotifier {
     final processingState = playerState.processingState;
     final isPlaying = playerState.playing;
 
-    String state = 'stopped'; // Default to 'stopped' (safe value)
+    String state = 'paused'; // Default to 'paused' (safe value, 'stopped' and 'idle' were problematic)
 
     if (isPlaying) {
       state = 'playing';
@@ -169,7 +169,7 @@ class MusicAssistantProvider with ChangeNotifier {
       // Not playing, check processing state
       switch (processingState) {
         case ProcessingState.idle:
-          state = 'stopped'; // 'idle' was rejected by server, using 'stopped'
+          state = 'paused'; // 'idle' was rejected, using 'paused'
           break;
         case ProcessingState.loading:
         case ProcessingState.buffering:
@@ -179,7 +179,7 @@ class MusicAssistantProvider with ChangeNotifier {
           state = 'paused';
           break;
         case ProcessingState.completed:
-          state = 'stopped';
+          state = 'paused';
           break;
       }
     }
