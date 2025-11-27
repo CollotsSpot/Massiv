@@ -1,0 +1,78 @@
+name: Build F-Droid Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-fdroid-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install fdroidserver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fdroidserver
+
+      - name: Create fdroid directory structure
+        run: |
+          mkdir -p fdroid/repo
+          mkdir -p fdroid/metadata
+
+      - name: Download release APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the latest release
+          RELEASE_TAG=$(gh release list --limit 1 | cut -f 3)
+          echo "Latest release: $RELEASE_TAG"
+
+          # Download APK from latest release
+          gh release download $RELEASE_TAG --pattern "*.apk" --dir fdroid/repo/ || echo "No APK found in release"
+
+      - name: Create config.yml
+        run: |
+          cat > fdroid/config.yml << 'EOF'
+          repo_url: https://collotsspot.github.io/Assistant-To-The-Music/fdroid/repo
+          repo_name: Assistant To The Music
+          repo_description: Personal F-Droid repository for Assistant To The Music
+          repo_icon: icon.png
+          archive_older: 2
+          EOF
+
+      - name: Copy app metadata
+        run: |
+          cp fdroid-metadata.yml fdroid/metadata/com.musicassistant.music_assistant.yml
+
+      - name: Copy icon
+        run: |
+          cp assets/images/icon.png fdroid/repo/icon.png || echo "Icon not found"
+
+      - name: Update repository
+        run: |
+          cd fdroid
+          fdroid update --create-metadata --verbose
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./fdroid
+          publish_branch: gh-pages
+          enable_jekyll: false
