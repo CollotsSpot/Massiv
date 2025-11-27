@@ -1240,6 +1240,8 @@ class MusicAssistantAPI {
     bool? volumeMuted,
     double? elapsedTime, // seconds
     double? totalTime, // seconds
+    bool? powered, // power state
+    bool? available, // availability state
   }) async {
     // This command allows the local player to report its status back to MA
     // so the server UI updates correctly
@@ -1253,6 +1255,8 @@ class MusicAssistantAPI {
           if (volumeMuted != null) 'volume_muted': volumeMuted,
           if (elapsedTime != null) 'elapsed_time': elapsedTime,
           if (totalTime != null) 'total_time': totalTime,
+          if (powered != null) 'powered': powered,
+          if (available != null) 'available': available,
         },
       );
     } catch (e) {

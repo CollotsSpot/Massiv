@@ -32,6 +32,7 @@ class MusicAssistantProvider with ChangeNotifier {
   
   // Local Playback
   bool _isLocalPlaybackEnabled = false;
+  bool _isLocalPlayerPowered = true; // Track local player power state
   StreamSubscription? _localPlayerEventSubscription;
   Timer? _localPlayerStateReportTimer;
 
@@ -125,6 +126,7 @@ class MusicAssistantProvider with ChangeNotifier {
 
   Future<void> _initializeLocalPlayback() async {
     await _localPlayer.initialize();
+    _isLocalPlayerPowered = true; // Default to powered on when enabling local playback
     if (isConnected) {
       await _registerLocalPlayer();
     }
@@ -152,7 +154,7 @@ class MusicAssistantProvider with ChangeNotifier {
   
   Future<void> _reportLocalPlayerState() async {
     if (_api == null || !_isLocalPlaybackEnabled) return;
-    
+
     final playerId = await SettingsService.getBuiltinPlayerId();
     if (playerId == null) return;
 
@@ -160,12 +162,14 @@ class MusicAssistantProvider with ChangeNotifier {
     final state = isPlaying ? 'playing' : 'paused'; // Simplified state
     final position = _localPlayer.position.inSeconds.toDouble();
     final duration = _localPlayer.duration.inSeconds.toDouble();
-    
+
     await _api!.updateBuiltinPlayerState(
       playerId,
       state,
       elapsedTime: position,
       totalTime: duration > 0 ? duration : null,
+      powered: _isLocalPlayerPowered,
+      available: true, // Local player is always available when enabled
     );
   }
 
@@ -233,30 +237,42 @@ class MusicAssistantProvider with ChangeNotifier {
             await _localPlayer.playUrl(url);
           }
           break;
-          
+
         case 'stop':
           await _localPlayer.stop();
           break;
-          
+
         case 'pause':
           await _localPlayer.pause();
           break;
-          
+
         case 'play':
           await _localPlayer.play();
           break;
-          
+
         case 'seek':
           final position = event['position'] as int?;
           if (position != null) {
             await _localPlayer.seek(Duration(seconds: position));
           }
           break;
-          
+
         case 'volume_set':
           final volume = event['volume_level'] as int?;
           if (volume != null) {
             await _localPlayer.setVolume(volume / 100.0);
+          }
+          break;
+
+        case 'power':
+          final powered = event['powered'] as bool?;
+          if (powered != null) {
+            _isLocalPlayerPowered = powered;
+            _logger.log('Local player power set to: $powered');
+            if (!powered) {
+              // When powered off, stop playback
+              await _localPlayer.stop();
+            }
           }
           break;
       }
