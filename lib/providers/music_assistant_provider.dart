@@ -155,9 +155,9 @@ class MusicAssistantProvider with ChangeNotifier {
     final position = _localPlayer.position.inSeconds.toDouble();
     final duration = _localPlayer.duration.inSeconds.toDouble();
 
-    // Try uppercase state values (common Python enum format)
+    // Use lowercase state values as expected by the server
     final isPlaying = _localPlayer.isPlaying;
-    final state = isPlaying ? 'PLAYING' : 'IDLE';
+    final state = isPlaying ? 'playing' : 'idle';
 
     await _api!.updateBuiltinPlayerState(
       playerId,
