@@ -35,6 +35,12 @@ jobs:
           mkdir -p fdroid/repo
           mkdir -p fdroid/metadata
 
+      - name: Cache F-Droid keystore
+        uses: actions/cache@v3
+        with:
+          path: fdroid/keystore.p12
+          key: fdroid-keystore
+
       - name: Download release APK
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,6 +60,9 @@ jobs:
           repo_description: Personal F-Droid repository for Assistant To The Music
           repo_icon: icon.png
           archive_older: 2
+          repo_keyalias: fdroid
+          keystorepass: ${{ secrets.FDROID_KEYSTORE_PASS || 'defaultpass' }}
+          keypass: ${{ secrets.FDROID_KEY_PASS || 'defaultpass' }}
           EOF
 
       - name: Copy app metadata
@@ -63,6 +72,14 @@ jobs:
       - name: Copy icon
         run: |
           cp assets/images/icon.png fdroid/repo/icon.png || echo "Icon not found"
+
+      - name: Create or use existing keystore
+        run: |
+          cd fdroid
+          if [ ! -f keystore.p12 ]; then
+            echo "Creating new keystore..."
+            fdroid update --create-key
+          fi
 
       - name: Update repository
         run: |
