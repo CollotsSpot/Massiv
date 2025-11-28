@@ -136,15 +136,21 @@ class AuthManager {
 
   /// Attempt login with specified strategy
   /// Returns true if login successful and credentials stored
+  /// authServerUrl is optional - only used for Authelia when auth is on a different domain
   Future<bool> login(
     String serverUrl,
     String username,
     String password,
-    AuthStrategy strategy,
-  ) async {
+    AuthStrategy strategy, {
+    String? authServerUrl,
+  }) async {
     _logger.log('Attempting login with ${strategy.name} strategy');
 
-    final credentials = await strategy.login(serverUrl, username, password);
+    // Use auth server URL if provided, otherwise use main server URL
+    final loginUrl = authServerUrl?.isNotEmpty == true ? authServerUrl! : serverUrl;
+    _logger.log('Login URL: $loginUrl');
+
+    final credentials = await strategy.login(loginUrl, username, password);
 
     if (credentials != null) {
       _currentStrategy = strategy;

@@ -16,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _serverUrlController = TextEditingController();
   final TextEditingController _portController = TextEditingController(text: '8095');
+  final TextEditingController _authServerUrlController = TextEditingController(); // For separate auth server (Authelia)
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -30,14 +31,22 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSavedPort();
+    _loadSavedSettings();
   }
 
-  Future<void> _loadSavedPort() async {
+  Future<void> _loadSavedSettings() async {
     final savedPort = await SettingsService.getWebSocketPort();
+    final savedAuthServerUrl = await SettingsService.getAuthServerUrl();
+
     if (savedPort != null) {
       setState(() {
         _portController.text = savedPort.toString();
+      });
+    }
+
+    if (savedAuthServerUrl != null) {
+      setState(() {
+        _authServerUrlController.text = savedAuthServerUrl;
       });
     }
   }
@@ -46,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _serverUrlController.dispose();
     _portController.dispose();
+    _authServerUrlController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -245,12 +255,22 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
+        // Get auth server URL (if provided for Authelia)
+        String? authServerUrl;
+        if (_detectedAuthStrategy!.name == 'authelia') {
+          final authUrl = _authServerUrlController.text.trim();
+          if (authUrl.isNotEmpty) {
+            authServerUrl = _normalizeServerUrl(authUrl);
+          }
+        }
+
         // Attempt login with detected strategy
         final success = await provider.authManager.login(
           serverUrl,
           username,
           password,
           _detectedAuthStrategy!,
+          authServerUrl: authServerUrl,
         );
 
         if (!success) {
@@ -264,6 +284,13 @@ class _LoginScreenState extends State<LoginScreen> {
         // Save credentials for future auto-login
         await SettingsService.setUsername(username);
         await SettingsService.setPassword(password);
+
+        // Save auth server URL if provided
+        if (authServerUrl != null && authServerUrl.isNotEmpty) {
+          await SettingsService.setAuthServerUrl(authServerUrl);
+        } else {
+          await SettingsService.setAuthServerUrl(null);
+        }
 
         // Save auth credentials to settings
         final serialized = provider.authManager.serializeCredentials();
@@ -458,6 +485,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Authentication fields (shown only if auth required)
               if (needsAuth) ...[
+                // Auth Server URL (only for Authelia)
+                if (_detectedAuthStrategy?.name == 'authelia') ...[
+                  Text(
+                    'Auth Server URL (Optional)',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onBackground,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Leave empty if authentication is on the same server',
+                    style: TextStyle(
+                      color: colorScheme.onBackground.withOpacity(0.6),
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: _authServerUrlController,
+                    style: TextStyle(color: colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      hintText: 'e.g., auth.example.com (if different from server)',
+                      hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.38)),
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.shield_rounded,
+                        color: colorScheme.onSurface.withOpacity(0.54),
+                      ),
+                    ),
+                    enabled: !_isConnecting,
+                    textInputAction: TextInputAction.next,
+                  ),
+
+                  const SizedBox(height: 24),
+                ],
+
                 Text(
                   'Username',
                   style: textTheme.titleMedium?.copyWith(
