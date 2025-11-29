@@ -273,7 +273,7 @@ class PlayerSelector extends StatelessWidget {
                                                   if (isPlaying) {
                                                     maProvider.pausePlayer(player.playerId);
                                                   } else {
-                                                    maProvider.playPlayer(player.playerId);
+                                                    maProvider.resumePlayer(player.playerId);
                                                   }
                                                 },
                                               ),
