@@ -101,6 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: (index) {
+              // Collapse player if expanded
+              if (GlobalPlayerOverlay.isPlayerExpanded) {
+                GlobalPlayerOverlay.collapsePlayer();
+              }
+
               setState(() {
                 _selectedIndex = index;
               });
