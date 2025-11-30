@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/music_assistant_provider.dart';
 import '../services/music_assistant_api.dart';
 import '../services/settings_service.dart';
-import '../services/auth_service.dart';
 import '../services/debug_logger.dart';
 import '../theme/theme_provider.dart';
 import 'debug_log_screen.dart';
@@ -22,7 +21,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _passwordController = TextEditingController();
   final _lastFmApiKeyController = TextEditingController();
   final _audioDbApiKeyController = TextEditingController();
-  final _authService = AuthService();
   final _logger = DebugLogger();
   bool _isConnecting = false;
   final _localPlayerNameController = TextEditingController();
@@ -101,18 +99,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isConnecting = true;
     });
 
+    final provider = context.read<MusicAssistantProvider>();
+
     try {
       if (_usernameController.text.trim().isNotEmpty &&
           _passwordController.text.trim().isNotEmpty) {
         _logger.log('🔐 Attempting login with credentials...');
 
-        final token = await _authService.login(
+        // Use the provider's authManager so credentials are available for WebSocket
+        final success = await provider.authManager.login(
           _serverUrlController.text,
           _usernameController.text.trim(),
           _passwordController.text.trim(),
         );
 
-        if (token != null) {
+        if (success) {
           await SettingsService.setUsername(_usernameController.text.trim());
           await SettingsService.setPassword(_passwordController.text.trim());
 
@@ -133,7 +134,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       }
 
-      final provider = context.read<MusicAssistantProvider>();
       await provider.connectToServer(_serverUrlController.text);
 
       if (mounted) {
