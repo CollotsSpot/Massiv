@@ -447,10 +447,34 @@ class MusicAssistantProvider with ChangeNotifier {
       var imageUrl = currentMedia['image_url'] as String?;
       final durationSecs = currentMedia['duration'] as int?;
 
-      // Convert HTTP image URLs to HTTPS to avoid mixed content issues
-      if (imageUrl != null && imageUrl.startsWith('http://')) {
-        imageUrl = imageUrl.replaceFirst('http://', 'https://');
-        _logger.log('📋 Converted image URL to HTTPS: $imageUrl');
+      // Rewrite image URL to use main server URL
+      // The server returns URLs like http://ma.serverscloud.org:8097/imageproxy?...
+      // but port 8097 isn't exposed externally - we need to route through main port
+      if (imageUrl != null && _serverUrl != null) {
+        try {
+          final imgUri = Uri.parse(imageUrl);
+          // Extract query parameters (provider, size, fmt, path)
+          final queryString = imgUri.query;
+
+          // Build new URL using our server URL
+          var baseUrl = _serverUrl!;
+          if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+            baseUrl = 'https://$baseUrl';
+          }
+          // Remove trailing slash if present
+          if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+          }
+
+          imageUrl = '$baseUrl/imageproxy?$queryString';
+          _logger.log('📋 Rewrote image URL to use main server: $imageUrl');
+        } catch (e) {
+          _logger.log('📋 Failed to rewrite image URL: $e');
+          // Fall back to just HTTP->HTTPS conversion
+          if (imageUrl.startsWith('http://')) {
+            imageUrl = imageUrl.replaceFirst('http://', 'https://');
+          }
+        }
       }
 
       _pendingTrackMetadata = TrackMetadata(
