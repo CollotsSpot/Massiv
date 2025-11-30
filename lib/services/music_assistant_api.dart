@@ -1192,6 +1192,14 @@ class MusicAssistantAPI {
     return _eventStreams['builtin_player']!.stream;
   }
 
+  /// Stream of player_updated events (for metadata extraction)
+  Stream<Map<String, dynamic>> get playerUpdatedEvents {
+    if (!_eventStreams.containsKey('player_updated')) {
+      _eventStreams['player_updated'] = StreamController<Map<String, dynamic>>.broadcast();
+    }
+    return _eventStreams['player_updated']!.stream;
+  }
+
   /// Register this device as a player
   Future<void> registerBuiltinPlayer(String playerId, String name) async {
     try {

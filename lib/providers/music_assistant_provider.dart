@@ -36,7 +36,13 @@ class MusicAssistantProvider with ChangeNotifier {
   // Local Playback - always enabled
   bool _isLocalPlayerPowered = true; // Track local player power state
   StreamSubscription? _localPlayerEventSubscription;
+  StreamSubscription? _playerUpdatedEventSubscription;
   Timer? _localPlayerStateReportTimer;
+
+  // Pending metadata from player_updated events (for notification display)
+  TrackMetadata? _pendingTrackMetadata;
+  // Metadata that is currently shown in the notification (to detect when update needed)
+  TrackMetadata? _currentNotificationMetadata;
 
   // Player list caching
   DateTime? _playersLastFetched;
@@ -124,6 +130,10 @@ class MusicAssistantProvider with ChangeNotifier {
   Future<void> _initializeLocalPlayback() async {
     await _localPlayer.initialize();
     _isLocalPlayerPowered = true; // Default to powered on when enabling local playback
+
+    // Note: With just_audio_background, skip next/previous are handled via
+    // the notification controls automatically when we implement them
+
     if (isConnected) {
       await _registerLocalPlayer();
     }
@@ -257,6 +267,10 @@ class MusicAssistantProvider with ChangeNotifier {
       _localPlayerEventSubscription?.cancel();
       _localPlayerEventSubscription = _api!.builtinPlayerEvents.listen(_handleLocalPlayerEvent);
 
+      // Listen to player_updated events to capture track metadata for notifications
+      _playerUpdatedEventSubscription?.cancel();
+      _playerUpdatedEventSubscription = _api!.playerUpdatedEvents.listen(_handlePlayerUpdatedEvent);
+
       await _api!.connect();
       notifyListeners();
     } catch (e) {
@@ -305,6 +319,46 @@ class MusicAssistantProvider with ChangeNotifier {
               fullUrl = '$baseUrl$path';
               _logger.log('🎵 Constructed URL: baseUrl=$baseUrl + path=$path = $fullUrl');
             }
+
+            // Use pending metadata from player_updated event if available
+            // (player_updated events arrive before play_media and contain full track info)
+            TrackMetadata metadata;
+            if (_pendingTrackMetadata != null) {
+              metadata = _pendingTrackMetadata!;
+              _logger.log('🎵 Using metadata from player_updated: ${metadata.title} by ${metadata.artist}');
+            } else {
+              // Fallback: try to extract from play_media event (usually empty)
+              final trackName = event['track_name'] as String? ??
+                                event['name'] as String? ??
+                                'Unknown Track';
+              final artistName = event['artist_name'] as String? ??
+                                 event['artist'] as String? ??
+                                 'Unknown Artist';
+              final albumName = event['album_name'] as String? ??
+                                event['album'] as String?;
+              var artworkUrl = event['image_url'] as String? ??
+                                 event['artwork_url'] as String?;
+              final durationSecs = event['duration'] as int?;
+
+              // Convert HTTP to HTTPS for artwork
+              if (artworkUrl != null && artworkUrl.startsWith('http://')) {
+                artworkUrl = artworkUrl.replaceFirst('http://', 'https://');
+              }
+
+              metadata = TrackMetadata(
+                title: trackName,
+                artist: artistName,
+                album: albumName,
+                artworkUrl: artworkUrl,
+                duration: durationSecs != null ? Duration(seconds: durationSecs) : null,
+              );
+              _logger.log('🎵 Using fallback metadata: ${metadata.title} by ${metadata.artist}');
+            }
+
+            // Set metadata on the local player for notification
+            _localPlayer.setCurrentTrackMetadata(metadata);
+            // Track what metadata we're using for the notification
+            _currentNotificationMetadata = metadata;
 
             await _localPlayer.playUrl(fullUrl);
           } else {
@@ -373,11 +427,102 @@ class MusicAssistantProvider with ChangeNotifier {
     }
   }
 
+  /// Handle player_updated events to capture track metadata for notifications
+  Future<void> _handlePlayerUpdatedEvent(Map<String, dynamic> event) async {
+    try {
+      // Get our builtin player ID
+      final builtinPlayerId = await SettingsService.getBuiltinPlayerId();
+      if (builtinPlayerId == null) return;
+
+      // Check if this update is for our player
+      final playerId = event['player_id'] as String?;
+      if (playerId != builtinPlayerId) return;
+
+      // Extract current_media metadata
+      final currentMedia = event['current_media'] as Map<String, dynamic>?;
+      if (currentMedia == null) {
+        // Don't clear pending metadata when current_media is null
+        // This happens during stop/transition and we want to keep the last known metadata
+        // until new metadata arrives
+        return;
+      }
+
+      final title = currentMedia['title'] as String? ?? 'Unknown Track';
+      final artist = currentMedia['artist'] as String? ?? 'Unknown Artist';
+      final album = currentMedia['album'] as String?;
+      var imageUrl = currentMedia['image_url'] as String?;
+      final durationSecs = currentMedia['duration'] as int?;
+
+      // Rewrite image URL to use main server URL
+      // The server returns URLs like http://ma.serverscloud.org:8097/imageproxy?...
+      // but port 8097 isn't exposed externally - we need to route through main port
+      if (imageUrl != null && _serverUrl != null) {
+        try {
+          final imgUri = Uri.parse(imageUrl);
+          // Extract query parameters (provider, size, fmt, path)
+          final queryString = imgUri.query;
+
+          // Build new URL using our server URL
+          var baseUrl = _serverUrl!;
+          if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+            baseUrl = 'https://$baseUrl';
+          }
+          // Remove trailing slash if present
+          if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+          }
+
+          imageUrl = '$baseUrl/imageproxy?$queryString';
+          _logger.log('📋 Rewrote image URL to use main server: $imageUrl');
+        } catch (e) {
+          _logger.log('📋 Failed to rewrite image URL: $e');
+          // Fall back to just HTTP->HTTPS conversion
+          if (imageUrl != null && imageUrl.startsWith('http://')) {
+            imageUrl = imageUrl.replaceFirst('http://', 'https://');
+          }
+        }
+      }
+
+      final newMetadata = TrackMetadata(
+        title: title,
+        artist: artist,
+        album: album,
+        artworkUrl: imageUrl,
+        duration: durationSecs != null ? Duration(seconds: durationSecs) : null,
+      );
+
+      // Only update pending metadata if this is real track info (not flow_stream placeholder)
+      final mediaType = currentMedia['media_type'] as String?;
+      if (mediaType == 'flow_stream') {
+        _logger.log('📋 Ignoring flow_stream metadata (placeholder)');
+        return;
+      }
+
+      _pendingTrackMetadata = newMetadata;
+      _logger.log('📋 Captured track metadata from player_updated: $title by $artist (image: ${imageUrl ?? "none"})');
+
+      // Check if the notification has wrong/stale metadata that needs updating
+      // This handles the race condition where play_media uses old pending metadata
+      final notificationNeedsUpdate = _currentNotificationMetadata != null &&
+          (_currentNotificationMetadata!.title != title ||
+           _currentNotificationMetadata!.artist != artist);
+
+      if (_localPlayer.isPlaying && notificationNeedsUpdate) {
+        _logger.log('📋 Notification has stale metadata (${_currentNotificationMetadata!.title}) - updating to: $title by $artist');
+        await _localPlayer.updateNotificationWhilePlaying(newMetadata);
+        _currentNotificationMetadata = newMetadata;
+      }
+    } catch (e) {
+      _logger.log('Error handling player_updated event: $e');
+    }
+  }
+
   Future<void> disconnect() async {
     _playerStateTimer?.cancel();
     _playerStateTimer = null;
     _localPlayerStateReportTimer?.cancel();
     _localPlayerEventSubscription?.cancel();
+    _playerUpdatedEventSubscription?.cancel();
     await _api?.disconnect();
     _connectionState = MAConnectionState.disconnected;
     _artists = [];
@@ -924,6 +1069,21 @@ class MusicAssistantProvider with ChangeNotifier {
             _currentTrack!.name != queue.currentItem!.track.name) {
           _currentTrack = queue.currentItem!.track;
           stateChanged = true;
+
+          // Update notification with new track info (only for local player)
+          final builtinPlayerId = await SettingsService.getBuiltinPlayerId();
+          if (builtinPlayerId != null && _selectedPlayer!.playerId == builtinPlayerId) {
+            final track = _currentTrack!;
+            final artworkUrl = _api?.getImageUrl(track, size: 512);
+            _localPlayer.updateNotification(
+              id: track.uri ?? track.itemId,
+              title: track.name,
+              artist: track.artistsString,
+              album: track.album?.name,
+              artworkUrl: artworkUrl,
+              duration: track.duration,
+            );
+          }
         }
       } else {
         if (_currentTrack != null) {

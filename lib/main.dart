@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'providers/music_assistant_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -10,8 +11,17 @@ import 'theme/app_theme.dart';
 import 'theme/system_theme_helper.dart';
 import 'widgets/global_player_overlay.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize just_audio_background for background playback and notifications
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'io.github.collotsspot.massiv.audio',
+    androidNotificationChannelName: 'Massiv Audio',
+    androidNotificationOngoing: true,
+    androidNotificationIcon: 'drawable/ic_notification',
+  );
+  print('🎵 JustAudioBackground initialized - background playback and media notifications ENABLED');
 
   // Set preferred orientations
   SystemChrome.setPreferredOrientations([
