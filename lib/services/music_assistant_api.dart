@@ -247,13 +247,23 @@ class MusicAssistantAPI {
       final eventType = data['event'] as String?;
       if (eventType != null) {
         _logger.log('Event received: $eventType');
-        
-        // Debug: Log full data for player events to inspect state values
+
+        // Get the object_id (player_id for player events)
+        final objectId = data['object_id'] as String?;
+        final eventData = data['data'] as Map<String, dynamic>? ?? {};
+
+        // Debug: Log full data for player events
         if (eventType == 'player_added' || eventType == 'player_updated' || eventType == 'builtin_player') {
-           _logger.log('Event data: ${jsonEncode(data['data'])}');
+           _logger.log('Event data: ${jsonEncode(eventData)} (player_id: $objectId)');
         }
-        
-        _eventStreams[eventType]?.add(data['data'] as Map<String, dynamic>);
+
+        // Include object_id in event data so listeners can filter by player
+        final enrichedData = {
+          ...eventData,
+          'player_id': objectId,
+        };
+
+        _eventStreams[eventType]?.add(enrichedData);
       }
     } catch (e) {
       _logger.log('Error handling message: $e');

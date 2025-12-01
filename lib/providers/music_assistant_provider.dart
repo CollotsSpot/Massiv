@@ -355,9 +355,19 @@ class MusicAssistantProvider with ChangeNotifier {
     _logger.log('📥 Local player event received: ${event['type'] ?? event['command']}');
 
     try {
+      // CRITICAL: Only process events for THIS device's player
+      // This prevents cross-device playback (e.g., wife's phone playing when you play on yours)
+      final eventPlayerId = event['player_id'] as String?;
+      final myPlayerId = await SettingsService.getBuiltinPlayerId();
+
+      if (eventPlayerId != null && myPlayerId != null && eventPlayerId != myPlayerId) {
+        _logger.log('🚫 Ignoring event for different player: $eventPlayerId (my player: $myPlayerId)');
+        return;
+      }
+
       // Server sends 'type', but older versions or some events might use 'command'
       final command = (event['type'] as String?) ?? (event['command'] as String?);
-      
+
       switch (command) {
         case 'play_media':
           // Server sends 'media_url', relative path
