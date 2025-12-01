@@ -1518,7 +1518,7 @@ class MusicAssistantAPI {
 
       _logger.log('🗑️ Found ${ghostPlayers.length} ghost player(s) to remove:');
       for (final player in ghostPlayers) {
-        _logger.log('   - ${player.displayName} (${player.playerId})');
+        _logger.log('   - ${player.name} (${player.playerId})');
       }
 
       int removedCount = 0;
