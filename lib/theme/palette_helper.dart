@@ -60,16 +60,17 @@ class PaletteHelper {
                                 palette.mutedColor?.color ??
                                 const Color(0xFF121212);
 
-      // Darken the surface color significantly for the background
+      // Darken the surface color significantly for the expanded background
       final HSLColor hslSurface = HSLColor.fromColor(surfaceBase);
       final Color surface = hslSurface
           .withLightness((hslSurface.lightness * 0.3).clamp(0.05, 0.15))
           .toColor();
 
-      // Mini player should be slightly lighter than expanded background but still dark
+      // Mini player should be medium brightness - noticeably tinted but readable
+      // Use the muted color but at medium lightness (0.25-0.35 range)
       final Color miniPlayer = hslSurface
-          .withLightness((hslSurface.lightness * 0.5).clamp(0.08, 0.2))
-          .withSaturation((hslSurface.saturation * 0.7).clamp(0.1, 0.4))
+          .withLightness(0.3.clamp(0.25, 0.38))
+          .withSaturation((hslSurface.saturation * 1.2).clamp(0.15, 0.5))
           .toColor();
 
       return AdaptiveColors(
@@ -89,8 +90,10 @@ class PaletteHelper {
           .withLightness((hslSurface.lightness).clamp(0.92, 0.98))
           .toColor();
 
+      // Mini player in light mode - medium tinted
       final Color miniPlayer = hslSurface
-          .withLightness((hslSurface.lightness).clamp(0.85, 0.92))
+          .withLightness(0.75.clamp(0.65, 0.8))
+          .withSaturation((hslSurface.saturation * 1.2).clamp(0.15, 0.5))
           .toColor();
 
       return AdaptiveColors(
