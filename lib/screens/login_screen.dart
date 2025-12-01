@@ -423,7 +423,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _ownerNameController,
                 style: TextStyle(color: colorScheme.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'e.g., Chris, Mom, Dad',
+                  hintText: 'Your first name',
                   hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.38)),
                   filled: true,
                   fillColor: colorScheme.surfaceVariant.withOpacity(0.3),

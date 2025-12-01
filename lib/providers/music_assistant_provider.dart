@@ -167,8 +167,8 @@ class MusicAssistantProvider with ChangeNotifier {
       _logger.log('🧹 User-triggered purge of unavailable players...');
       final result = await _api!.purgeAllUnavailablePlayers();
 
-      // Refresh players list after purge
-      await _loadAndSelectPlayers();
+      // Force refresh players list after purge (bypass cache)
+      await _loadAndSelectPlayers(forceRefresh: true);
 
       return result;
     } catch (e) {
@@ -911,12 +911,11 @@ class MusicAssistantProvider with ChangeNotifier {
         _logger.log('   - ${p.name} (${p.playerId}) available=${p.available} powered=${p.powered}');
       }
 
-      // Filter out ghost players and duplicates
-      // 1. "Music Assistant Mobile" players are legacy/ghosts (created by old versions)
-      // 2. Valid players are those matching our current builtinPlayerId (if any)
+      // Filter out unavailable players and legacy ghosts
+      // Unavailable players are ghost players from old installations that clutter the list
+      // Users can still see them in MA's web UI if needed
 
       int filteredCount = 0;
-      final List<String> ghostPlayerIds = [];
 
       _availablePlayers = allPlayers.where((player) {
         final nameLower = player.name.toLowerCase();
@@ -924,19 +923,21 @@ class MusicAssistantProvider with ChangeNotifier {
         // Filter out legacy "Music Assistant Mobile" ghosts
         if (nameLower.contains('music assistant mobile')) {
           filteredCount++;
-          ghostPlayerIds.add('${player.playerId} (Mobile Ghost)');
           return false;
         }
 
-        // "This Device" / Local Players
-        // If this player matches OUR persistent ID, keep it (it's us!)
-        if (builtinPlayerId != null && player.playerId == builtinPlayerId) {
-          return true;
+        // Filter out unavailable players (ghost players from old installations)
+        // Exception: Keep our own player even if temporarily unavailable
+        if (!player.available) {
+          if (builtinPlayerId != null && player.playerId == builtinPlayerId) {
+            // This is our player - keep it even if unavailable
+            return true;
+          }
+          // Other unavailable players are ghosts - hide them
+          filteredCount++;
+          return false;
         }
 
-        // If it's some OTHER "This Device" (from another installation/device), keep it too
-        // We only strictly filter the known "Music Assistant Mobile" ghosts
-        
         return true;
       }).toList();
 
