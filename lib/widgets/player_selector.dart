@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/music_assistant_provider.dart';
-import 'global_player_overlay.dart';
+import 'global_player_overlay.dart'; // For isPlayerExpanded and collapsePlayer
 
 class PlayerSelector extends StatelessWidget {
   const PlayerSelector({super.key});
@@ -78,9 +78,7 @@ class PlayerSelector extends StatelessWidget {
       GlobalPlayerOverlay.collapsePlayer();
     }
 
-    // Hide the mini player while device selector is open
-    GlobalPlayerOverlay.hidePlayer();
-
+    // Just show the bottom sheet - it will naturally slide up over the mini player
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -90,10 +88,7 @@ class PlayerSelector extends StatelessWidget {
       builder: (context) {
         return _PlayerSelectorSheet();
       },
-    ).whenComplete(() {
-      // Show the mini player again when sheet closes
-      GlobalPlayerOverlay.showPlayer();
-    });
+    );
   }
 }
 
