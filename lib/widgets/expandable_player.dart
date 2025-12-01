@@ -133,6 +133,10 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
           _lightColorScheme = colorSchemes.$1;
           _darkColorScheme = colorSchemes.$2;
         });
+
+        // Share adaptive colors globally via ThemeProvider
+        final themeProvider = context.read<ThemeProvider>();
+        themeProvider.updateAdaptiveColors(colorSchemes.$1, colorSchemes.$2);
       }
     } catch (e) {
       print('Failed to extract colors: $e');
@@ -220,12 +224,16 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
         ? (isDark ? _darkColorScheme : _lightColorScheme)
         : null;
 
-    // Color transitions
-    final collapsedBg = colorScheme.primaryContainer;
+    // Color transitions - mini player uses adaptive primaryContainer (darker tinted color)
+    final collapsedBg = themeProvider.adaptiveTheme && adaptiveScheme != null
+        ? adaptiveScheme.primaryContainer
+        : colorScheme.primaryContainer;
     final expandedBg = adaptiveScheme?.surface ?? const Color(0xFF121212);
     final backgroundColor = Color.lerp(collapsedBg, expandedBg, t)!;
 
-    final collapsedTextColor = colorScheme.onPrimaryContainer;
+    final collapsedTextColor = themeProvider.adaptiveTheme && adaptiveScheme != null
+        ? adaptiveScheme.onPrimaryContainer
+        : colorScheme.onPrimaryContainer;
     final expandedTextColor = adaptiveScheme?.onSurface ?? Colors.white;
     final textColor = Color.lerp(collapsedTextColor, expandedTextColor, t)!;
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_provider.dart';
 import '../widgets/global_player_overlay.dart';
 import 'new_home_screen.dart';
 import 'new_library_screen.dart';
@@ -33,6 +35,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final themeProvider = context.watch<ThemeProvider>();
+
+    // Use adaptive primary color for bottom nav when adaptive theme is enabled
+    final navSelectedColor = themeProvider.adaptiveTheme && themeProvider.adaptiveColors != null
+        ? themeProvider.adaptivePrimaryColor
+        : colorScheme.primary;
 
     return PopScope(
       canPop: false,
@@ -119,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
             backgroundColor: Colors.transparent,
-            selectedItemColor: colorScheme.primary,
+            selectedItemColor: navSelectedColor,
             unselectedItemColor: colorScheme.onSurface.withOpacity(0.54),
             elevation: 0,
             type: BottomNavigationBarType.fixed,

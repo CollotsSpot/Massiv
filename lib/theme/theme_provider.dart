@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
+import 'palette_helper.dart';
 
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   bool _useMaterialTheme = false;
   bool _adaptiveTheme = true;
   Color _customColor = const Color(0xFF604CEC);
+
+  // Adaptive colors extracted from current album art
+  AdaptiveColors? _adaptiveColors;
+  ColorScheme? _adaptiveLightScheme;
+  ColorScheme? _adaptiveDarkScheme;
 
   ThemeProvider() {
     _loadSettings();
@@ -15,6 +21,14 @@ class ThemeProvider extends ChangeNotifier {
   bool get useMaterialTheme => _useMaterialTheme;
   bool get adaptiveTheme => _adaptiveTheme;
   Color get customColor => _customColor;
+
+  // Adaptive color getters
+  AdaptiveColors? get adaptiveColors => _adaptiveColors;
+  ColorScheme? get adaptiveLightScheme => _adaptiveLightScheme;
+  ColorScheme? get adaptiveDarkScheme => _adaptiveDarkScheme;
+
+  /// Get the current adaptive primary color (for bottom nav, etc.)
+  Color get adaptivePrimaryColor => _adaptiveColors?.primary ?? _customColor;
 
   Future<void> _loadSettings() async {
     final themeModeString = await SettingsService.getThemeMode();
@@ -91,6 +105,34 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> setCustomColor(Color color) async {
     _customColor = color;
     await SettingsService.saveCustomColor(_colorToString(color));
+    notifyListeners();
+  }
+
+  /// Update adaptive colors from album art
+  void updateAdaptiveColors(ColorScheme? lightScheme, ColorScheme? darkScheme) {
+    _adaptiveLightScheme = lightScheme;
+    _adaptiveDarkScheme = darkScheme;
+
+    // Extract AdaptiveColors from the schemes
+    if (darkScheme != null) {
+      _adaptiveColors = AdaptiveColors(
+        primary: darkScheme.primary,
+        surface: darkScheme.surface,
+        onSurface: darkScheme.onSurface,
+        miniPlayer: darkScheme.primaryContainer,
+      );
+    } else {
+      _adaptiveColors = null;
+    }
+
+    notifyListeners();
+  }
+
+  /// Clear adaptive colors (when no track is playing)
+  void clearAdaptiveColors() {
+    _adaptiveColors = null;
+    _adaptiveLightScheme = null;
+    _adaptiveDarkScheme = null;
     notifyListeners();
   }
 }
