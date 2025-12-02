@@ -652,38 +652,20 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                     ),
                   ),
 
-                // Queue button (expanded only)
+                // Queue button (expanded only) - uses Listener to bypass parent GestureDetector
                 if (t > 0.3)
                   Positioned(
                     top: topPadding + 4,
                     right: 4,
                     child: Opacity(
                       opacity: ((t - 0.3) / 0.7).clamp(0.0, 1.0),
-                      child: GestureDetector(
+                      child: Listener(
                         behavior: HitTestBehavior.opaque,
-                        onTapDown: (_) => print('🎵 Queue button TAP DOWN'),
-                        onTapUp: (_) => print('🎵 Queue button TAP UP'),
-                        onTapCancel: () => print('🎵 Queue button TAP CANCEL'),
-                        onTap: () {
-                          print('🎵 Queue button onTap FIRED!');
-                          try {
-                            final navigator = Navigator.of(context, rootNavigator: true);
-                            print('🎵 Got navigator: $navigator');
-                            navigator.push(
-                              MaterialPageRoute(builder: (_) {
-                                print('🎵 Building QueueScreen route');
-                                return const QueueScreen();
-                              }),
-                            ).then((_) {
-                              print('🎵 Navigation completed');
-                            }).catchError((e) {
-                              print('🎵 Navigation error: $e');
-                            });
-                            print('🎵 Push called');
-                          } catch (e, stack) {
-                            print('🎵 Exception: $e');
-                            print('🎵 Stack: $stack');
-                          }
+                        onPointerUp: (event) {
+                          print('🎵 Queue button POINTER UP!');
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(builder: (_) => const QueueScreen()),
+                          );
                         },
                         child: Container(
                           padding: const EdgeInsets.all(12),
