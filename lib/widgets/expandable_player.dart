@@ -662,7 +662,6 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                       child: IconButton(
                         icon: Icon(Icons.queue_music_rounded, color: textColor, size: 24),
                         onPressed: () {
-                          print('🎵 Queue button pressed!');
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const QueueScreen()),
                           );
@@ -678,19 +677,21 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                     top: topPadding + 12,
                     left: 56,
                     right: 56,
-                    child: Opacity(
-                      opacity: ((t - 0.5) / 0.5).clamp(0.0, 1.0),
-                      child: Text(
-                        selectedPlayer.name,
-                        style: TextStyle(
-                          color: textColor.withOpacity(0.6),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.2,
+                    child: IgnorePointer(
+                      child: Opacity(
+                        opacity: ((t - 0.5) / 0.5).clamp(0.0, 1.0),
+                        child: Text(
+                          selectedPlayer.name,
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.6),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
