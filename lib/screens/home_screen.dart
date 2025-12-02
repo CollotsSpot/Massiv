@@ -55,6 +55,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // If not on home tab, navigate to home
         if (_selectedIndex != 0) {
+          // If leaving Settings, show player again
+          if (_selectedIndex == 3) {
+            GlobalPlayerOverlay.showPlayer();
+          }
           setState(() {
             _selectedIndex = 0;
           });
@@ -112,6 +116,14 @@ class _HomeScreenState extends State<HomeScreen> {
               // Collapse player if expanded
               if (GlobalPlayerOverlay.isPlayerExpanded) {
                 GlobalPlayerOverlay.collapsePlayer();
+              }
+
+              // Hide mini player on Settings screen, show on other screens
+              if (index == 3) {
+                GlobalPlayerOverlay.hidePlayer();
+              } else if (_selectedIndex == 3) {
+                // Coming back from Settings, show player again
+                GlobalPlayerOverlay.showPlayer();
               }
 
               setState(() {
