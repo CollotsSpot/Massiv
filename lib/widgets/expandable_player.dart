@@ -652,25 +652,22 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                     ),
                   ),
 
-                // Queue button (expanded only) - uses Listener to bypass parent GestureDetector
+                // Queue button (expanded only) - positioned LEFT of collapse button for testing
                 if (t > 0.3)
                   Positioned(
                     top: topPadding + 4,
-                    right: 4,
+                    left: 52,  // Next to collapse button
                     child: Opacity(
                       opacity: ((t - 0.3) / 0.7).clamp(0.0, 1.0),
-                      child: Listener(
-                        behavior: HitTestBehavior.opaque,
-                        onPointerUp: (event) {
-                          print('🎵 Queue button POINTER UP!');
+                      child: IconButton(
+                        icon: Icon(Icons.queue_music_rounded, color: textColor, size: 24),
+                        onPressed: () {
+                          print('🎵 Queue button tapped (left side test)!');
                           Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(builder: (_) => const QueueScreen()),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          child: Icon(Icons.queue_music_rounded, color: textColor, size: 24),
-                        ),
+                        padding: const EdgeInsets.all(12),
                       ),
                     ),
                   ),
