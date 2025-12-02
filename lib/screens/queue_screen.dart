@@ -209,13 +209,10 @@ class _QueueScreenState extends State<QueueScreen> {
           leading: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Drag handle
-              ReorderableDragStartListener(
-                index: index,
-                child: Icon(
-                  Icons.drag_handle,
-                  color: Colors.grey[600],
-                ),
+              // Drag handle (visual only for now - reordering not implemented)
+              Icon(
+                Icons.drag_handle,
+                color: Colors.grey[600],
               ),
               const SizedBox(width: 8),
               // Album art
