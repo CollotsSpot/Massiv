@@ -23,6 +23,13 @@ class AdaptiveColors {
   );
 }
 
+/// Helper to get contrasting text color based on background luminance
+Color getContrastingTextColor(Color backgroundColor) {
+  // Use relative luminance to determine if we need light or dark text
+  // Standard threshold is 0.179 based on WCAG guidelines
+  return backgroundColor.computeLuminance() > 0.4 ? Colors.black : Colors.white;
+}
+
 class PaletteHelper {
   /// Extract a color palette from an image with higher color count for better variety
   static Future<PaletteGenerator?> extractPalette(ImageProvider imageProvider) async {
@@ -114,32 +121,38 @@ class PaletteHelper {
 
     if (lightColors == null || darkColors == null) return null;
 
+    // Determine contrasting text colors based on primary color luminance
+    final lightOnPrimary = getContrastingTextColor(lightColors.primary);
+    final darkOnPrimary = getContrastingTextColor(darkColors.primary);
+    final lightOnMiniPlayer = getContrastingTextColor(lightColors.miniPlayer);
+    final darkOnMiniPlayer = getContrastingTextColor(darkColors.miniPlayer);
+
     final lightScheme = ColorScheme(
       brightness: Brightness.light,
       primary: lightColors.primary,
-      onPrimary: Colors.white,
+      onPrimary: lightOnPrimary,
       secondary: lightColors.primary.withOpacity(0.8),
-      onSecondary: Colors.white,
+      onSecondary: lightOnPrimary,
       error: Colors.red,
       onError: Colors.white,
       surface: lightColors.surface,
       onSurface: lightColors.onSurface,
       primaryContainer: lightColors.miniPlayer,
-      onPrimaryContainer: lightColors.onSurface,
+      onPrimaryContainer: lightOnMiniPlayer,
     );
 
     final darkScheme = ColorScheme(
       brightness: Brightness.dark,
       primary: darkColors.primary,
-      onPrimary: Colors.black,
+      onPrimary: darkOnPrimary,
       secondary: darkColors.primary.withOpacity(0.8),
-      onSecondary: Colors.black,
+      onSecondary: darkOnPrimary,
       error: Colors.redAccent,
       onError: Colors.black,
       surface: darkColors.surface,
       onSurface: darkColors.onSurface,
       primaryContainer: darkColors.miniPlayer,
-      onPrimaryContainer: darkColors.onSurface,
+      onPrimaryContainer: darkOnMiniPlayer,
     );
 
     return (lightScheme, darkScheme);

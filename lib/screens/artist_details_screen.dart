@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import '../models/media_item.dart';
 import '../providers/music_assistant_provider.dart';
 import 'album_details_screen.dart';
-import '../constants/hero_tags.dart';
 import '../theme/palette_helper.dart';
 import '../theme/theme_provider.dart';
 import '../services/metadata_service.dart';
 import '../services/debug_logger.dart';
+import '../utils/page_transitions.dart';
 
 class ArtistDetailsScreen extends StatefulWidget {
   final Artist artist;
@@ -32,8 +32,6 @@ class _ArtistDetailsScreenState extends State<ArtistDetailsScreen> {
   ColorScheme? _darkColorScheme;
   bool _isDescriptionExpanded = false;
   String? _artistDescription;
-
-  String get _heroTagSuffix => widget.heroTagSuffix != null ? '_${widget.heroTagSuffix}' : '';
 
   @override
   void initState() {
@@ -223,21 +221,18 @@ class _ArtistDetailsScreenState extends State<ArtistDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 60),
-                  Hero(
-                    tag: HeroTags.artistImage + (widget.artist.uri ?? widget.artist.itemId) + _heroTagSuffix,
-                    child: CircleAvatar(
-                      radius: 100,
-                      backgroundColor: colorScheme.surfaceVariant,
-                      backgroundImage:
-                          imageUrl != null ? NetworkImage(imageUrl) : null,
-                      child: imageUrl == null
-                          ? Icon(
-                              Icons.person_rounded,
-                              size: 100,
-                              color: colorScheme.onSurfaceVariant,
-                            )
-                          : null,
-                    ),
+                  CircleAvatar(
+                    radius: 100,
+                    backgroundColor: colorScheme.surfaceVariant,
+                    backgroundImage:
+                        imageUrl != null ? NetworkImage(imageUrl) : null,
+                    child: imageUrl == null
+                        ? Icon(
+                            Icons.person_rounded,
+                            size: 100,
+                            color: colorScheme.onSurfaceVariant,
+                          )
+                        : null,
                   ),
                 ],
               ),
@@ -249,17 +244,11 @@ class _ArtistDetailsScreenState extends State<ArtistDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Hero(
-                    tag: HeroTags.artistName + (widget.artist.uri ?? widget.artist.itemId) + _heroTagSuffix,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Text(
-                        widget.artist.name,
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colorScheme.onBackground,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  Text(
+                    widget.artist.name,
+                    style: textTheme.headlineMedium?.copyWith(
+                      color: colorScheme.onBackground,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -391,8 +380,8 @@ class _ArtistDetailsScreenState extends State<ArtistDetailsScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => AlbumDetailsScreen(album: album),
+          FadeSlidePageRoute(
+            child: AlbumDetailsScreen(album: album),
           ),
         );
       },

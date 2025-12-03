@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../theme/theme_provider.dart';
+import '../theme/palette_helper.dart';
 import '../widgets/global_player_overlay.dart';
 import 'new_home_screen.dart';
 import 'new_library_screen.dart';
@@ -40,9 +41,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Use adaptive primary color for bottom nav when adaptive theme is enabled
     // Note: adaptivePrimaryColor returns customColor as fallback, so no flash to defaults
-    final navSelectedColor = themeProvider.adaptiveTheme
+    var navSelectedColor = themeProvider.adaptiveTheme
         ? themeProvider.adaptivePrimaryColor
         : colorScheme.primary;
+
+    // Ensure nav color has sufficient contrast against the surface background
+    // If the primary color is too dark for a dark theme, lighten it
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark && navSelectedColor.computeLuminance() < 0.2) {
+      // Lighten dark colors for better visibility on dark backgrounds
+      final hsl = HSLColor.fromColor(navSelectedColor);
+      navSelectedColor = hsl.withLightness((hsl.lightness + 0.3).clamp(0.0, 0.8)).toColor();
+    } else if (!isDark && navSelectedColor.computeLuminance() > 0.8) {
+      // Darken light colors for better visibility on light backgrounds
+      final hsl = HSLColor.fromColor(navSelectedColor);
+      navSelectedColor = hsl.withLightness((hsl.lightness - 0.3).clamp(0.2, 1.0)).toColor();
+    }
 
     return PopScope(
       canPop: false,
