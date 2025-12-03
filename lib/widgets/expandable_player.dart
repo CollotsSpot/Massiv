@@ -91,6 +91,32 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
         _queuePanelController.reverse();
       }
     });
+
+    // Auto-refresh queue when panel is open
+    _queuePanelController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _startQueueRefreshTimer();
+      } else if (status == AnimationStatus.dismissed) {
+        _stopQueueRefreshTimer();
+      }
+    });
+  }
+
+  Timer? _queueRefreshTimer;
+
+  void _startQueueRefreshTimer() {
+    _stopQueueRefreshTimer();
+    // Refresh queue every 5 seconds when panel is open
+    _queueRefreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted && isQueuePanelOpen) {
+        _loadQueue();
+      }
+    });
+  }
+
+  void _stopQueueRefreshTimer() {
+    _queueRefreshTimer?.cancel();
+    _queueRefreshTimer = null;
   }
 
   @override
@@ -98,6 +124,7 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
     _controller.dispose();
     _queuePanelController.dispose();
     _progressTimer?.cancel();
+    _queueRefreshTimer?.cancel();
     super.dispose();
   }
 
