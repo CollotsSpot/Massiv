@@ -694,6 +694,25 @@ Timer.periodic(Duration(seconds: 30), (_) => _syncState());
 
 ---
 
+### C8. Investigate GlobalPlayerOverlay White Screen Bug
+> **In Plain English**: Occasionally when navigating (e.g., pressing play and returning to home), a semi-transparent white overlay appears that blocks all input. The app must be force-closed to recover. This is an intermittent race condition.
+
+**Location**: `lib/widgets/global_player_overlay.dart`
+**Current State**: Intermittent white overlay appears during navigation transitions. Adding `RepaintBoundary` to the overlay made it happen every time (now reverted). Commit history shows previous attempts to fix similar issues (`3aa2555 fix: revert hide/show player approach to avoid white screen freeze`).
+**Root Cause**: Likely a race condition or compositing issue with `AnimatedBuilder` + `Consumer` during `Navigator.pop()`. May involve timing of when `currentTrack` becomes non-null vs when navigation completes.
+**Proposed Investigation**:
+1. Add debug logging to track overlay state during navigation
+2. Check if visibility state changes mid-transition
+3. Consider restructuring overlay to avoid animation conflicts with navigation
+4. Test alternative approaches (Overlay widget, Portal package, etc.)
+**User Experience Impact**: App becomes unusable until force-closed
+**Risk Factors**: Deep architectural issue, may require significant refactoring
+**Dependencies**: None
+**Testing Required**: Stress test navigation with rapid album->play->back sequences
+**Effort**: High (investigation) + Unknown (fix)
+
+---
+
 ### C7. Simplify Ghost Player Logic ✅ COMPLETE (new cleanup screen)
 > **In Plain English**: There's 250+ lines of code trying to clean up "ghost" players (old app installations). But the cleanup doesn't actually work (the server ignores it). Keep only the useful part - recognizing your old player when you reinstall.
 
@@ -738,7 +757,7 @@ Future<String?> findAndAdoptGhostPlayer(String ownerName) async {
 |----------|-------|-----------|-----------|
 | A - Minimal | 8 | 6 ✅ | 2 (A7, A8) |
 | B - Medium | 10 | 7 ✅ | 3 (B3, B10) |
-| C - Big | 7 | 2 ✅ | 5 |
+| C - Big | 8 | 2 ✅ | 6 (includes C8 white screen bug) |
 
 ## Recommended Priority Order
 
