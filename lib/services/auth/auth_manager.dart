@@ -146,48 +146,61 @@ class AuthManager {
       _logger.log('Checking MA API at: $apiUrl');
 
       // Try to get server info - this tells us if auth is required
+      // Note: The command is just 'info', not 'server/info'
       final response = await http.post(
         apiUrl,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'command': 'server/info',
+          'command': 'info',
         }),
       ).timeout(const Duration(seconds: 5));
 
       _logger.log('MA API response: ${response.statusCode}');
+      _logger.log('MA API body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-        // Check if we got server info successfully (no auth required)
-        if (data.containsKey('result')) {
-          final result = data['result'] as Map<String, dynamic>?;
-          final serverVersion = result?['server_version'] as String?;
-          final schemaVersion = result?['schema_version'] as int?;
-
-          if (serverVersion != null) {
-            _logger.log('MA server version: $serverVersion, schema: $schemaVersion');
-
-            // Schema 28+ requires auth, but if we got here without auth, it's not enabled
-            return 'none';
-          }
-        }
-
-        // Check for auth error
-        if (data.containsKey('error_code')) {
-          final errorCode = data['error_code'] as int?;
-          // Error 50 = AuthenticationRequired
-          if (errorCode == 50) {
-            _logger.log('MA server requires authentication (error 50)');
-            return 'required';
-          }
-        }
-      }
-
-      // 401/403 means auth required
+      // 401/403 means auth required - check this first
       if (response.statusCode == 401 || response.statusCode == 403) {
         _logger.log('MA API returned ${response.statusCode} - auth required');
         return 'required';
+      }
+
+      // Also check for "Authentication required" text response
+      if (response.body.toLowerCase().contains('authentication required')) {
+        _logger.log('MA API returned auth required message');
+        return 'required';
+      }
+
+      if (response.statusCode == 200) {
+        // Try to parse as JSON
+        try {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+          // Check if we got server info successfully (no auth required)
+          if (data.containsKey('result')) {
+            final result = data['result'] as Map<String, dynamic>?;
+            final serverVersion = result?['server_version'] as String?;
+            final schemaVersion = result?['schema_version'] as int?;
+
+            if (serverVersion != null) {
+              _logger.log('MA server version: $serverVersion, schema: $schemaVersion');
+
+              // Schema 28+ requires auth, but if we got here without auth, it's not enabled
+              return 'none';
+            }
+          }
+
+          // Check for auth error in JSON
+          if (data.containsKey('error_code')) {
+            final errorCode = data['error_code'] as int?;
+            // Error 50 = AuthenticationRequired
+            if (errorCode == 50) {
+              _logger.log('MA server requires authentication (error 50)');
+              return 'required';
+            }
+          }
+        } catch (jsonError) {
+          _logger.log('MA API response not JSON: $jsonError');
+        }
       }
 
       return null;
