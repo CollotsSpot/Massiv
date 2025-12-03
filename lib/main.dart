@@ -200,6 +200,13 @@ class _AppStartupState extends State<AppStartup> {
       if (!provider.isConnected) {
         print('🚀 AppStartup: Auto-connecting to saved server: $serverUrl');
         try {
+          // Restore auth credentials before connecting (critical for Authelia)
+          final savedCredentials = await SettingsService.getAuthCredentials();
+          if (savedCredentials != null) {
+            print('🚀 AppStartup: Restoring saved auth credentials');
+            provider.authManager.deserializeCredentials(savedCredentials);
+          }
+
           await provider.connectToServer(serverUrl);
           print('🚀 AppStartup: Auto-connection successful');
         } catch (e) {

@@ -119,8 +119,23 @@ class MusicAssistantProvider with ChangeNotifier {
   Future<void> _initialize() async {
     _serverUrl = await SettingsService.getServerUrl();
     if (_serverUrl != null && _serverUrl!.isNotEmpty) {
+      // Restore saved auth credentials before connecting
+      await _restoreAuthCredentials();
       await connectToServer(_serverUrl!);
       await _initializeLocalPlayback();
+    }
+  }
+
+  /// Restore auth credentials from persistent storage
+  /// This is critical for reconnection after app process is killed
+  Future<void> _restoreAuthCredentials() async {
+    final savedCredentials = await SettingsService.getAuthCredentials();
+    if (savedCredentials != null) {
+      _logger.log('🔐 Restoring saved auth credentials...');
+      _authManager.deserializeCredentials(savedCredentials);
+      _logger.log('🔐 Auth credentials restored: ${_authManager.currentStrategy?.name ?? "none"}');
+    } else {
+      _logger.log('🔐 No saved auth credentials found');
     }
   }
 
