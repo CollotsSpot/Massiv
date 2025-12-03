@@ -89,12 +89,12 @@ class _GlobalPlayerOverlayState extends State<GlobalPlayerOverlay>
           child: AnimatedBuilder(
             animation: _slideAnimation,
             builder: (context, child) {
-              return Selector<MusicAssistantProvider, (bool, bool, bool)>(
-                selector: (_, p) => (p.isConnected, p.currentTrack != null, p.selectedPlayer != null),
-                builder: (context, data, _) {
-                  final (isConnected, hasTrack, hasPlayer) = data;
+              return Consumer<MusicAssistantProvider>(
+                builder: (context, maProvider, _) {
                   // Only show player if connected and has a track
-                  if (!isConnected || !hasTrack || !hasPlayer) {
+                  if (!maProvider.isConnected ||
+                      maProvider.currentTrack == null ||
+                      maProvider.selectedPlayer == null) {
                     return const SizedBox.shrink();
                   }
                   return ExpandablePlayer(
