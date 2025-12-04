@@ -5,6 +5,7 @@ import '../models/media_item.dart';
 import '../widgets/player_selector.dart';
 import '../widgets/album_card.dart';
 import '../utils/page_transitions.dart';
+import '../constants/hero_tags.dart';
 import 'artist_details_screen.dart';
 import 'playlist_details_screen.dart';
 import 'settings_screen.dart';
@@ -202,24 +203,34 @@ class _NewLibraryScreenState extends State<NewLibraryScreen>
     final imageUrl = provider.getImageUrl(artist, size: 128);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final suffix = '_library';
 
     return ListTile(
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundColor: colorScheme.surfaceVariant,
-        backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
-        child: imageUrl == null
-            ? Icon(Icons.person_rounded, color: colorScheme.onSurfaceVariant)
-            : null,
-      ),
-      title: Text(
-        artist.name,
-        style: textTheme.titleMedium?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w500,
+      leading: Hero(
+        tag: HeroTags.artistImage + (artist.uri ?? artist.itemId) + suffix,
+        child: CircleAvatar(
+          radius: 24,
+          backgroundColor: colorScheme.surfaceVariant,
+          backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+          child: imageUrl == null
+              ? Icon(Icons.person_rounded, color: colorScheme.onSurfaceVariant)
+              : null,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      ),
+      title: Hero(
+        tag: HeroTags.artistName + (artist.uri ?? artist.itemId) + suffix,
+        child: Material(
+          color: Colors.transparent,
+          child: Text(
+            artist.name,
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ),
       onTap: () {
         Navigator.push(
