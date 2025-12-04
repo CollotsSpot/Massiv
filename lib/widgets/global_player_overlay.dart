@@ -117,7 +117,7 @@ class _GlobalPlayerOverlayState extends State<GlobalPlayerOverlay>
     final colorScheme = theme.colorScheme;
 
     return BackButtonListener(
-      onBackButtonPressed: () {
+      onBackButtonPressed: () async {
         // If player is expanded, collapse it and consume the back button
         if (GlobalPlayerOverlay.isPlayerExpanded) {
           GlobalPlayerOverlay.collapsePlayer();
