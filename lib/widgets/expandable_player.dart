@@ -52,7 +52,7 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
   double? _seekPosition;
 
   // Dimensions
-  static const double _collapsedHeight = 64.0;
+  static const double _collapsedHeight = 68.0; // Added 4px bottom padding
   static const double _collapsedMargin = 8.0;
   static const double _collapsedBorderRadius = 16.0;
   static const double _collapsedArtSize = 64.0;
@@ -383,16 +383,16 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
 
     // Typography - clear hierarchy
     // Title: bold, prominent (24px)
-    // Artist: medium weight, secondary (16px)
-    // Album: light, tertiary (13px)
+    // Artist: medium weight, secondary (18px expanded, was 16px)
+    // Album: light, tertiary (15px expanded, was 13px)
     final titleFontSize = _lerpDouble(16.0, 24.0, t);
-    final artistFontSize = _lerpDouble(14.0, 16.0, t);
+    final artistFontSize = _lerpDouble(14.0, 18.0, t); // Increased from 16 to 18
 
-    final collapsedTitleLeft = _collapsedArtSize + 12;
+    final collapsedTitleLeft = _collapsedArtSize + 8; // Reduced from 12 to 8 (4px less)
     final expandedTitleLeft = contentPadding;
     final titleLeft = _lerpDouble(collapsedTitleLeft, expandedTitleLeft, t);
 
-    final collapsedTitleTop = (_collapsedHeight - 32) / 2;
+    final collapsedTitleTop = (_collapsedHeight - 32) / 2 - 4; // Raised up by 8px (was centered, now 4px higher accounting for 4px bottom padding)
     final expandedTitleTop = expandedArtTop + expandedArtSize + 28;
     final titleTop = _lerpDouble(collapsedTitleTop, expandedTitleTop, t);
 
@@ -415,15 +415,15 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
     final expandedTitleHeight = titlePainter.height;
 
     // Artist positioned dynamically based on actual title height
-    final collapsedArtistTop = collapsedTitleTop + 18;
-    final expandedArtistTop = expandedTitleTop + expandedTitleHeight + 8;
+    final collapsedArtistTop = collapsedTitleTop + 22; // Increased gap from 18 to 22
+    final expandedArtistTop = expandedTitleTop + expandedTitleHeight + 12; // Increased from 8 to 12
     final artistTop = _lerpDouble(collapsedArtistTop, expandedArtistTop, t);
 
     // Album - subtle, below artist
-    final expandedAlbumTop = expandedArtistTop + 24;
+    final expandedAlbumTop = expandedArtistTop + 28; // Increased from 24 to 28
 
     // Progress bar - with generous spacing
-    final expandedProgressTop = expandedAlbumTop + 36;
+    final expandedProgressTop = expandedAlbumTop + 106; // Increased from 36 to 106 (+70px)
 
     // Controls - main row with comfortable touch targets
     final collapsedControlsRight = 8.0;
@@ -582,7 +582,7 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                         currentTrack.album!.name,
                         style: TextStyle(
                           color: textColor.withOpacity(0.45),
-                          fontSize: 13,
+                          fontSize: 15, // Increased from 13 to 15
                           fontWeight: FontWeight.w300,
                         ),
                         textAlign: TextAlign.center,
@@ -642,7 +642,7 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                                   _formatDuration((_seekPosition ?? selectedPlayer.currentElapsedTime).toInt()),
                                   style: TextStyle(
                                     color: textColor.withOpacity(0.5),
-                                    fontSize: 11,
+                                    fontSize: 13, // Increased from 11 to 13
                                     fontWeight: FontWeight.w500,
                                     fontFeatures: const [FontFeature.tabularFigures()],
                                   ),
@@ -651,7 +651,7 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                                   _formatDuration(currentTrack.duration!.inSeconds),
                                   style: TextStyle(
                                     color: textColor.withOpacity(0.5),
-                                    fontSize: 11,
+                                    fontSize: 13, // Increased from 11 to 13
                                     fontWeight: FontWeight.w500,
                                     fontFeatures: const [FontFeature.tabularFigures()],
                                   ),
@@ -790,7 +790,7 @@ class ExpandablePlayerState extends State<ExpandablePlayer>
                           selectedPlayer.name,
                           style: TextStyle(
                             color: textColor.withOpacity(0.6),
-                            fontSize: 13,
+                            fontSize: 15, // Increased from 13 to 15
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.2,
                           ),

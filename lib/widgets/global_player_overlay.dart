@@ -16,8 +16,8 @@ class BottomSpacing {
   /// Height of the bottom navigation bar
   static const double navBarHeight = 56.0;
 
-  /// Height of mini player when visible
-  static const double miniPlayerHeight = 72.0;
+  /// Height of mini player when visible (68px height + 8px margin)
+  static const double miniPlayerHeight = 76.0;
 
   /// Space needed when only nav bar is visible (with some extra padding)
   static const double navBarOnly = navBarHeight + 16.0;
