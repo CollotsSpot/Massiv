@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// A page route that uses a fade + slight slide transition on forward navigation,
-/// but NO page transition on back (letting hero animations shine).
+/// A page route optimized for hero animations.
 ///
 /// On forward navigation: fade in + slight slide from right
-/// On back navigation: no page transition, just hero animations
+/// On back navigation: quick fade out + slide down
 class FadeSlidePageRoute<T> extends PageRouteBuilder<T> {
   final Widget child;
 
@@ -13,35 +12,53 @@ class FadeSlidePageRoute<T> extends PageRouteBuilder<T> {
   }) : super(
           pageBuilder: (context, animation, secondaryAnimation) => child,
           transitionDuration: const Duration(milliseconds: 300),
-          reverseTransitionDuration: const Duration(milliseconds: 300), // Match hero animation duration
+          reverseTransitionDuration: const Duration(milliseconds: 200), // Quick back animation
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // On back navigation (reverse), don't apply any page transition
-            // Just return the child and let hero animations do their thing
-            if (animation.status == AnimationStatus.reverse) {
-              return child;
-            }
-
-            // Forward navigation: fade in + slight slide from right
+            // Fade transition - applies to both directions
             final fadeAnimation = CurvedAnimation(
               parent: animation,
               curve: Curves.easeOut,
+              reverseCurve: Curves.easeIn,
             );
 
-            final slideAnimation = Tween<Offset>(
-              begin: const Offset(0.05, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            ));
+            // Check direction for slide
+            final isReverse = animation.status == AnimationStatus.reverse;
 
-            return FadeTransition(
-              opacity: fadeAnimation,
-              child: SlideTransition(
-                position: slideAnimation,
-                child: child,
-              ),
-            );
+            if (isReverse) {
+              // Back navigation: slide DOWN
+              final slideAnimation = Tween<Offset>(
+                begin: const Offset(0, 0.08), // Slide down 8%
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeIn,
+              ));
+
+              return FadeTransition(
+                opacity: fadeAnimation,
+                child: SlideTransition(
+                  position: slideAnimation,
+                  child: child,
+                ),
+              );
+            } else {
+              // Forward navigation: slide from RIGHT
+              final slideAnimation = Tween<Offset>(
+                begin: const Offset(0.05, 0), // Slide from right 5%
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ));
+
+              return FadeTransition(
+                opacity: fadeAnimation,
+                child: SlideTransition(
+                  position: slideAnimation,
+                  child: child,
+                ),
+              );
+            }
           },
         );
 }

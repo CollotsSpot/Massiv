@@ -158,19 +158,29 @@ class _ArtistDetailsScreenState extends State<ArtistDetailsScreen> {
     final colorScheme = adaptiveScheme ?? Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: colorScheme.background,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
-              onPressed: () => Navigator.pop(context),
-              color: colorScheme.onBackground,
-            ),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          clearAdaptiveColorsOnBack(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: colorScheme.background,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 300,
+              pinned: true,
+              backgroundColor: colorScheme.background,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () {
+                  clearAdaptiveColorsOnBack(context);
+                  Navigator.pop(context);
+                },
+                color: colorScheme.onBackground,
+              ),
             flexibleSpace: FlexibleSpaceBar(
               background: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -340,6 +350,7 @@ class _ArtistDetailsScreenState extends State<ArtistDetailsScreen> {
             ],
           ],
         ],
+        ),
       ),
     );
   }

@@ -20,6 +20,13 @@ Future<void> updateAdaptiveColorsFromImage(BuildContext context, String? imageUr
   }
 }
 
+/// Clear adaptive colors and return to default theme colors
+/// Call this when navigating back from album/artist detail screens
+void clearAdaptiveColorsOnBack(BuildContext context) {
+  final themeProvider = context.read<ThemeProvider>();
+  themeProvider.clearAdaptiveColors();
+}
+
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   bool _useMaterialTheme = false;
