@@ -59,71 +59,76 @@ class _NewLibraryScreenState extends State<NewLibraryScreen>
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<MusicAssistantProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    // Use Selector for targeted rebuilds - only rebuild when connection state changes
+    return Selector<MusicAssistantProvider, bool>(
+      selector: (_, provider) => provider.isConnected,
+      builder: (context, isConnected, _) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
 
-    if (!provider.isConnected) {
-      return Scaffold(
-        backgroundColor: colorScheme.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: Text(
-            'Library',
-            style: textTheme.titleLarge?.copyWith(
-              color: colorScheme.onBackground,
-              fontWeight: FontWeight.w300,
+        if (!isConnected) {
+          return Scaffold(
+            backgroundColor: colorScheme.background,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text(
+                'Library',
+                style: textTheme.titleLarge?.copyWith(
+                  color: colorScheme.onBackground,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+              centerTitle: true,
+              actions: const [PlayerSelector()],
+            ),
+            body: _buildDisconnectedView(context),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: colorScheme.background,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              'Library',
+              style: textTheme.titleLarge?.copyWith(
+                color: colorScheme.onBackground,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            centerTitle: true,
+            actions: const [PlayerSelector()],
+            bottom: TabBar(
+              controller: _tabController,
+              labelColor: colorScheme.primary,
+              unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
+              indicatorColor: colorScheme.primary,
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+              tabs: const [
+                Tab(text: 'Artists'),
+                Tab(text: 'Albums'),
+                Tab(text: 'Playlists'),
+              ],
             ),
           ),
-          centerTitle: true,
-          actions: const [PlayerSelector()],
-        ),
-        body: _buildDisconnectedView(context, provider),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Library',
-          style: textTheme.titleLarge?.copyWith(
-            color: colorScheme.onBackground,
-            fontWeight: FontWeight.w300,
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildArtistsTab(context),
+              _buildAlbumsTab(context),
+              _buildPlaylistsTab(context),
+            ],
           ),
-        ),
-        centerTitle: true,
-        actions: const [PlayerSelector()],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: colorScheme.primary,
-          unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
-          indicatorColor: colorScheme.primary,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
-          tabs: const [
-            Tab(text: 'Artists'),
-            Tab(text: 'Albums'),
-            Tab(text: 'Playlists'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildArtistsTab(context, provider),
-          _buildAlbumsTab(context, provider),
-          _buildPlaylistsTab(context, provider),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildDisconnectedView(BuildContext context, MusicAssistantProvider provider) {
+  Widget _buildDisconnectedView(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
@@ -170,45 +175,65 @@ class _NewLibraryScreenState extends State<NewLibraryScreen>
   }
 
   // ============ ARTISTS TAB ============
-  Widget _buildArtistsTab(BuildContext context, MusicAssistantProvider provider) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildArtistsTab(BuildContext context) {
+    // Use Selector for targeted rebuilds - only rebuild when artists or loading state changes
+    return Selector<MusicAssistantProvider, (List<Artist>, bool)>(
+      selector: (_, provider) => (provider.artists, provider.isLoading),
+      builder: (context, data, _) {
+        final (artists, isLoading) = data;
+        final colorScheme = Theme.of(context).colorScheme;
 
-    if (provider.isLoading) {
-      return Center(child: CircularProgressIndicator(color: colorScheme.primary));
-    }
+        if (isLoading) {
+          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+        }
 
-    if (provider.artists.isEmpty) {
-      return _buildEmptyState(
-        context,
-        icon: Icons.person_outline_rounded,
-        message: 'No artists found',
-        onRefresh: provider.loadLibrary,
-      );
-    }
+        if (artists.isEmpty) {
+          return _buildEmptyState(
+            context,
+            icon: Icons.person_outline_rounded,
+            message: 'No artists found',
+            onRefresh: () => context.read<MusicAssistantProvider>().loadLibrary(),
+          );
+        }
 
-    return RefreshIndicator(
-      color: colorScheme.primary,
-      backgroundColor: colorScheme.surface,
-      onRefresh: () async => provider.loadLibrary(),
-      child: ListView.builder(
-        itemCount: provider.artists.length,
-        padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: BottomSpacing.navBarOnly),
-        itemBuilder: (context, index) {
-          final artist = provider.artists[index];
-          return _buildArtistTile(context, artist, provider);
-        },
-      ),
+        return RefreshIndicator(
+          color: colorScheme.primary,
+          backgroundColor: colorScheme.surface,
+          onRefresh: () async => context.read<MusicAssistantProvider>().loadLibrary(),
+          child: ListView.builder(
+            key: const PageStorageKey<String>('library_artists_list'),
+            cacheExtent: 500, // Prebuild items off-screen for smoother scrolling
+            itemCount: artists.length,
+            padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: BottomSpacing.navBarOnly),
+            itemBuilder: (context, index) {
+              final artist = artists[index];
+              return _buildArtistTile(
+                context,
+                artist,
+                key: ValueKey(artist.uri ?? artist.itemId),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildArtistTile(BuildContext context, Artist artist, MusicAssistantProvider provider) {
+  Widget _buildArtistTile(
+    BuildContext context,
+    Artist artist, {
+    Key? key,
+  }) {
+    final provider = context.read<MusicAssistantProvider>();
     final imageUrl = provider.getImageUrl(artist, size: 128);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final suffix = '_library';
 
-    return ListTile(
-      leading: Hero(
+    return RepaintBoundary(
+      child: ListTile(
+        key: key,
+        leading: Hero(
         tag: HeroTags.artistImage + (artist.uri ?? artist.itemId) + suffix,
         child: CircleAvatar(
           radius: 24,
@@ -234,65 +259,76 @@ class _NewLibraryScreenState extends State<NewLibraryScreen>
           ),
         ),
       ),
-      onTap: () {
-        // Update adaptive colors immediately on tap
-        updateAdaptiveColorsFromImage(context, imageUrl);
-        Navigator.push(
-          context,
-          FadeSlidePageRoute(
-            child: ArtistDetailsScreen(
-              artist: artist,
-              heroTagSuffix: 'library',
+        onTap: () {
+          // Update adaptive colors immediately on tap
+          updateAdaptiveColorsFromImage(context, imageUrl);
+          Navigator.push(
+            context,
+            FadeSlidePageRoute(
+              child: ArtistDetailsScreen(
+                artist: artist,
+                heroTagSuffix: 'library',
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  // ============ ALBUMS TAB ============
-  Widget _buildAlbumsTab(BuildContext context, MusicAssistantProvider provider) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    if (provider.isLoading) {
-      return Center(child: CircularProgressIndicator(color: colorScheme.primary));
-    }
-
-    if (provider.albums.isEmpty) {
-      return _buildEmptyState(
-        context,
-        icon: Icons.album_outlined,
-        message: 'No albums found',
-        onRefresh: provider.loadLibrary,
-      );
-    }
-
-    return RefreshIndicator(
-      color: colorScheme.primary,
-      backgroundColor: colorScheme.surface,
-      onRefresh: () async => provider.loadLibrary(),
-      child: GridView.builder(
-        padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: BottomSpacing.navBarOnly),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.75,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: provider.albums.length,
-        itemBuilder: (context, index) {
-          final album = provider.albums[index];
-          return AlbumCard(
-            album: album,
-            heroTagSuffix: 'library_grid',
           );
         },
       ),
     );
   }
 
+  // ============ ALBUMS TAB ============
+  Widget _buildAlbumsTab(BuildContext context) {
+    // Use Selector for targeted rebuilds - only rebuild when albums or loading state changes
+    return Selector<MusicAssistantProvider, (List<Album>, bool)>(
+      selector: (_, provider) => (provider.albums, provider.isLoading),
+      builder: (context, data, _) {
+        final (albums, isLoading) = data;
+        final colorScheme = Theme.of(context).colorScheme;
+
+        if (isLoading) {
+          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+        }
+
+        if (albums.isEmpty) {
+          return _buildEmptyState(
+            context,
+            icon: Icons.album_outlined,
+            message: 'No albums found',
+            onRefresh: () => context.read<MusicAssistantProvider>().loadLibrary(),
+          );
+        }
+
+        return RefreshIndicator(
+          color: colorScheme.primary,
+          backgroundColor: colorScheme.surface,
+          onRefresh: () async => context.read<MusicAssistantProvider>().loadLibrary(),
+          child: GridView.builder(
+            key: const PageStorageKey<String>('library_albums_grid'),
+            cacheExtent: 500, // Prebuild items off-screen for smoother scrolling
+            padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: BottomSpacing.navBarOnly),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.75,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: albums.length,
+            itemBuilder: (context, index) {
+              final album = albums[index];
+              return AlbumCard(
+                key: ValueKey(album.uri ?? album.itemId),
+                album: album,
+                heroTagSuffix: 'library_grid',
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   // ============ PLAYLISTS TAB ============
-  Widget _buildPlaylistsTab(BuildContext context, MusicAssistantProvider provider) {
+  Widget _buildPlaylistsTab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (_isLoadingPlaylists) {
@@ -313,17 +349,20 @@ class _NewLibraryScreenState extends State<NewLibraryScreen>
       backgroundColor: colorScheme.surface,
       onRefresh: _loadPlaylists,
       child: ListView.builder(
+        key: const PageStorageKey<String>('library_playlists_list'),
+        cacheExtent: 500, // Prebuild items off-screen for smoother scrolling
         itemCount: _playlists.length,
         padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: BottomSpacing.navBarOnly),
         itemBuilder: (context, index) {
           final playlist = _playlists[index];
-          return _buildPlaylistTile(context, playlist, provider);
+          return _buildPlaylistTile(context, playlist);
         },
       ),
     );
   }
 
-  Widget _buildPlaylistTile(BuildContext context, Playlist playlist, MusicAssistantProvider provider) {
+  Widget _buildPlaylistTile(BuildContext context, Playlist playlist) {
+    final provider = context.read<MusicAssistantProvider>();
     final imageUrl = provider.api?.getImageUrl(playlist, size: 128);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
