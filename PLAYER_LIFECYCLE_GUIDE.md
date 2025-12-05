@@ -419,6 +419,48 @@ _authRequired = needsAuth || authEnabled || (schemaVersion != null && schemaVers
 - [ ] One phone's actions don't affect the other
 - [ ] Check settings.json - both players have complete configs
 
+### CRITICAL: Two-Phone Playback Test (2025-12-05)
+
+**Background:** Previous multi-client testing caused config corruption. When both phones
+connected and played, one device's config became corrupted (missing `player_id` field),
+causing error 999 on all subsequent playback attempts.
+
+**Current State (cleaned 2025-12-05):**
+| Device | Owner | Player ID | Config Status |
+|--------|-------|-----------|---------------|
+| Chris' Phone | Chris | `ensemble_01aeaa82-71c2-4a69-943b-553c26c5ff67` | ✅ Complete |
+| Kat's Phone | Kat | `ensemble_4be5077a-2a21-42c3-9d06-2eaf48ae8ca7` | ✅ Complete |
+
+**Corrupted entries removed:** `ma_kdmgremuyu`, `ensemble_a9b2bdcd-8cd2-4fbf-9af2-35dd4c8f87b3`
+
+**Test Steps:**
+1. Chris' phone: Install latest APK, connect to MA
+2. Kat's phone: Install latest APK, connect to MA
+3. Verify both phones show their respective player selected
+4. Chris' phone: Play a track to local player
+5. Kat's phone: Verify NOT playing (cross-device isolation)
+6. Kat's phone: Play a different track to local player
+7. Both phones playing independently? ✅ or ❌
+
+**After test, check for corruption:**
+```bash
+docker exec musicassistant cat /data/settings.json | jq '.players | to_entries[] | select(.key | startswith("ensemble_")) | {key: .key, has_player_id: (.value | has("player_id")), fields: (.value | keys | length)}'
+```
+
+**Expected:** Both players have `has_player_id: true` and `fields: 7`
+
+**If error 999 occurs:**
+1. Stop MA: `docker stop musicassistant`
+2. Check which config is corrupted (run command above)
+3. Fix or remove corrupted entry
+4. Restart MA: `docker start musicassistant`
+5. Document what action caused corruption
+
+**Log markers to watch for:**
+- ✅ Good: `✅ Verification passed: Player is available in MA`
+- ⚠️ Warning: `⚠️ Player config is corrupted`
+- ❌ Bad: `Command error: 999 - Field "player_id" of type str is missing`
+
 ### Reconnection Tests
 
 - [ ] App reconnects after WiFi toggle
