@@ -164,19 +164,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: OutlinedButton.icon(
+              child: FilledButton.tonalIcon(
                 onPressed: _disconnect,
                 icon: const Icon(Icons.logout_rounded),
                 label: const Text(
                   'Disconnect',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                style: OutlinedButton.styleFrom(
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.errorContainer.withOpacity(0.4),
                   foregroundColor: colorScheme.error,
-                  side: BorderSide(color: colorScheme.error.withOpacity(0.5)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -239,18 +239,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             themeProvider.setThemeMode(newSelection.first);
                           },
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) {
+                            backgroundColor: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return colorScheme.primaryContainer;
                               }
-                              return Colors.transparent;
+                              return colorScheme.surfaceVariant.withOpacity(0.3);
                             }),
-                            foregroundColor: MaterialStateProperty.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) {
+                            foregroundColor: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return colorScheme.onPrimaryContainer;
                               }
                               return colorScheme.onSurfaceVariant;
                             }),
+                            side: WidgetStateProperty.all(BorderSide.none),
                           ),
                         ),
                       );
@@ -415,7 +416,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: OutlinedButton.icon(
+              child: FilledButton.tonalIcon(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -426,9 +427,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 icon: const Icon(Icons.bug_report_rounded),
                 label: const Text('View Debug Logs'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: colorScheme.onBackground,
-                  side: BorderSide(color: colorScheme.outline),
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.surfaceVariant.withOpacity(0.5),
+                  foregroundColor: colorScheme.onSurfaceVariant,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

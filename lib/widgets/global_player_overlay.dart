@@ -23,7 +23,7 @@ class BottomSpacing {
   static const double navBarOnly = navBarHeight + 16.0;
 
   /// Space needed when mini player is also visible
-  static const double withMiniPlayer = navBarHeight + miniPlayerHeight + 16.0;
+  static const double withMiniPlayer = navBarHeight + miniPlayerHeight + 14.0;
 }
 
 /// ValueNotifier for player expansion progress (0.0 to 1.0) and background color

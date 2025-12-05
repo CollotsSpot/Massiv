@@ -319,20 +319,22 @@ class SearchScreenState extends State<SearchScreen> {
   Widget _buildFilterChip(String label, String value) {
     final isSelected = _activeFilter == value;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return FilterChip(
       label: Text(label),
       selected: isSelected,
+      showCheckmark: false,
       onSelected: (selected) {
         setState(() {
           _activeFilter = value;
         });
       },
+      backgroundColor: colorScheme.surfaceVariant.withOpacity(0.3),
       selectedColor: colorScheme.primaryContainer,
-      checkmarkColor: colorScheme.onPrimaryContainer,
+      side: BorderSide.none,
       labelStyle: TextStyle(
-        color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
   }
