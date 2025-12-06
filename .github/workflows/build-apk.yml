@@ -42,19 +42,16 @@ jobs:
         run: flutter analyze
         continue-on-error: true
 
-      - name: Create signing keystore
+      - name: Setup signing keystore
         run: |
-          # Create a keystore for signing (valid for 10000 days)
-          keytool -genkey -v -keystore android/app/upload-keystore.jks \
-            -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass android -keypass android \
-            -alias upload -dname "CN=Ensemble, OU=HomeServer, O=Personal, L=Home, S=Home, C=US"
+          # Decode keystore from secret (persistent key for consistent signatures)
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
 
           # Create key.properties file
           cat > android/key.properties << EOF
-          storePassword=android
-          keyPassword=android
-          keyAlias=upload
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=upload-keystore.jks
           EOF
 
