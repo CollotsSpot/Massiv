@@ -1484,8 +1484,9 @@ class MusicAssistantProvider with ChangeNotifier {
 
       // Filter out:
       // 1. Other devices' ensemble players (only show THIS device's local player)
-      // 2. Unavailable players (ghost players from old installations)
-      // 3. Legacy "Music Assistant Mobile" ghosts
+      // 2. MA Web UI "This Device" players (builtin players from browser sessions)
+      // 3. Unavailable players (ghost players from old installations)
+      // 4. Legacy "Music Assistant Mobile" ghosts
       // Users can still see all players in MA's web UI if needed
 
       int filteredCount = 0;
@@ -1495,6 +1496,14 @@ class MusicAssistantProvider with ChangeNotifier {
 
         // Filter out legacy "Music Assistant Mobile" ghosts
         if (nameLower.contains('music assistant mobile')) {
+          filteredCount++;
+          return false;
+        }
+
+        // Filter out MA Web UI "This Device" players
+        // These are created when someone opens MA in a browser
+        if (nameLower == 'this device' || player.playerId.startsWith('ma_')) {
+          _logger.log('🚫 Filtering out MA Web UI player: ${player.name} (${player.playerId})');
           filteredCount++;
           return false;
         }
